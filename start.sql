@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS user_job (
 CREATE TABLE IF NOT EXISTS balance_job (
     balance_id BIGSERIAL PRIMARY KEY NOT NULL,
     user_id INTEGER REFERENCES user_job(user_id),
-    count INTEGER NOT NULL
+    amount MONEY NOT NULL
 );
 
 --name: get-user-balance
@@ -18,3 +18,6 @@ UPDATE balance_job SET count = count - ? WHERE user_id = ? AND count > 0;
 
 --name: remittance-to
 UPDATE balance_job SET count = count + ? WHERE user_id = ?;
+
+--name: drop-balance-table
+DROP TABLE IF EXISTS balance_job;

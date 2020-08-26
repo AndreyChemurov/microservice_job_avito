@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"microservice_job_avito/internal/database"
 
 	"database/sql"
 
@@ -36,6 +38,12 @@ func prepareDatabase() error {
 		panic(err)
 	}
 
+	// _, err = dot.Exec(db, "drop-balance-table")
+
+	// if err != nil {
+	// 	panic(err)
+	// }
+
 	_, err = dot.Exec(db, "create-balance-table")
 
 	if err != nil {
@@ -49,8 +57,10 @@ func main() {
 	err := prepareDatabase()
 
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	// service call
+	// os.Exit(0)
+
+	database.PathHandler()
 }
