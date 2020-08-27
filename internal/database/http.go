@@ -3,7 +3,9 @@ package database
 import (
 	"encoding/json"
 	"log"
+	"math"
 	"net/http"
+	"strconv"
 )
 
 // PathHandler ...
@@ -18,26 +20,54 @@ func PathHandler() {
 	log.Fatal(http.ListenAndServe(":8000", nil))
 }
 
+// TODO:
+//	1. How to send data: url params or post body? (both?)
+//	2. increase + decrease == one function
+//	3. Constants + exceptions
+//	4. Parse right data type from request to avoid sql injection
+//	5. sync-coming decrement request, prevent negative value
+
+// EXTRA:
+//	1. Other currencies (currency param)
+
 func getBalance(w http.ResponseWriter, r *http.Request) {
-	// TODO:
-	//	1. How to send data: url params or post body? (both?)
-	//	2. increase + decrease == one function
-	//	3. Constants + exceptions
-	//	4. Parse right data type from request to avoid sql injection
+	userIDFromRequest := r.URL.Query().Get("id")
 
-	// EXTRA:
-	//	1. Other currencies (currency param)
-}
+	userID, err := strconv.ParseUint(userIDFromRequest, 10, 64)
 
-func remittance(w http.ResponseWriter, r *http.Request) {
-	//
+	if err != nil {
+		return // err log
+	}
+
+	_ = _getBalance(userID)
 }
 
 func increase(w http.ResponseWriter, r *http.Request) {
-	//
+	userIDFromRequest := r.URL.Query().Get("id")
+	moneyFromRequest := r.URL.Query().Get("money")
+
+	userID, err := strconv.ParseUint(userIDFromRequest, 10, 64)
+
+	if err != nil {
+		return // err log
+	}
+
+	m, err := strconv.ParseFloat(moneyFromRequest, 64)
+
+	if err != nil {
+		return // err log
+	}
+
+	money := math.Round(m*100) / 100
+
+	_ = _increase(userID, money) //
 }
 
 func decrease(w http.ResponseWriter, r *http.Request) {
+	//
+}
+
+func remittance(w http.ResponseWriter, r *http.Request) {
 	//
 }
 
