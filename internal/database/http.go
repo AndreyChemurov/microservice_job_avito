@@ -21,7 +21,6 @@ func PathHandler() {
 }
 
 // TODO:
-//	1. How to send data: url params or post body? (both?)
 //	2. increase + decrease == one function
 //	3. Constants + exceptions
 //	4. Parse right data type from request to avoid sql injection
@@ -36,7 +35,7 @@ func getBalance(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseUint(userIDFromRequest, 10, 64)
 
 	if err != nil {
-		return // err log
+		log.Fatal(err)
 	}
 
 	_ = _getBalance(userID)
@@ -49,22 +48,39 @@ func increase(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseUint(userIDFromRequest, 10, 64)
 
 	if err != nil {
-		return // err log
+		log.Fatal(err)
 	}
 
 	m, err := strconv.ParseFloat(moneyFromRequest, 64)
 
 	if err != nil {
-		return // err log
+		log.Fatal(err)
 	}
 
 	money := math.Round(m*100) / 100
 
-	_ = _increase(userID, money) //
+	_increase(userID, money) //
 }
 
 func decrease(w http.ResponseWriter, r *http.Request) {
-	//
+	userIDFromRequest := r.URL.Query().Get("id")
+	moneyFromRequest := r.URL.Query().Get("money")
+
+	userID, err := strconv.ParseUint(userIDFromRequest, 10, 64)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	m, err := strconv.ParseFloat(moneyFromRequest, 64)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	money := math.Round(m*100) / 100
+
+	_decrease(userID, money)
 }
 
 func remittance(w http.ResponseWriter, r *http.Request) {

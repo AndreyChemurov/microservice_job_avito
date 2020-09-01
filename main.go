@@ -30,13 +30,7 @@ func prepareDatabase() error {
 
 	defer db.Close()
 
-	dot, err := dotsql.LoadFromFile("start.sql")
-
-	_, err = dot.Exec(db, "create-user-table")
-
-	if err != nil {
-		panic(err)
-	}
+	_, err = dotsql.LoadFromFile("start.sql")
 
 	// _, err = dot.Exec(db, "drop-balance-table")
 
@@ -44,30 +38,46 @@ func prepareDatabase() error {
 	// 	panic(err)
 	// }
 
-	_, err = dot.Exec(db, "create-balance-table")
+	// _, err = dot.Exec(db, "drop-user-table")
 
-	if err != nil {
-		panic(err)
-	}
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// _, err = dot.Exec(db, "create-user-table")
+
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// _, err = dot.Exec(db, "create-balance-table")
+
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	// create users if not exist
-	var user uint64
+	// var user uint64
 
-	row, _ := dot.QueryRow(db, "check-users-exist")
-	err = row.Scan(&user)
+	// row, _ := dot.QueryRow(db, "check-users-exist")
+	// err = row.Scan(&user)
 
-	if err == sql.ErrNoRows {
-		// create 3 users
+	// if err == sql.ErrNoRows {
+	// 	// create 3 users
 
-		for i := 0; i < 3; i++ {
-			_, err = dot.Exec(db, "create-user")
+	// 	for i := 0; i < 3; i++ {
+	// 		_, err = dot.Exec(db, "create-user")
 
-			if err != nil {
-				panic(err)
-			}
-		}
+	// 		if err != nil {
+	// 			panic(err)
+	// 		}
+	// 	}
 
-	} else if err != nil {
+	// } else if err != nil {
+	// 	panic(err)
+	// }
+
+	if err != nil {
 		panic(err)
 	}
 
