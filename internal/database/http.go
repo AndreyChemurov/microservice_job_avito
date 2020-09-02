@@ -20,67 +20,52 @@ func PathHandler() {
 	log.Fatal(http.ListenAndServe(":8000", nil))
 }
 
-// TODO:
-//	2. increase + decrease == one function
-//	3. Constants + exceptions
-//	4. Parse right data type from request to avoid sql injection
-//	5. sync-coming decrement request, prevent negative value
-
-// EXTRA:
-//	1. Other currencies (currency param)
-
 func getBalance(w http.ResponseWriter, r *http.Request) {
 	userIDFromRequest := r.URL.Query().Get("id")
 
-	userID, err := strconv.ParseUint(userIDFromRequest, 10, 64)
-
-	if err != nil {
-		log.Fatal(err)
+	if userIDFromRequest == "" {
+		js, _ := json.Marshal(WrongParams400rm)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(js)
+		return
 	}
 
-	_ = _getBalance(userID)
+	balance, status := _getBalance(userIDFromRequest)
+
+	w.WriteHeader(status)
+	w.Write(balance)
+	return
 }
 
 func increase(w http.ResponseWriter, r *http.Request) {
 	userIDFromRequest := r.URL.Query().Get("id")
 	moneyFromRequest := r.URL.Query().Get("money")
 
-	userID, err := strconv.ParseUint(userIDFromRequest, 10, 64)
-
-	if err != nil {
-		log.Fatal(err)
+	if userIDFromRequest == "" || moneyFromRequest == "" {
+		js, _ := json.Marshal(WrongParams400rm)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(js)
+		return
 	}
 
-	m, err := strconv.ParseFloat(moneyFromRequest, 64)
+	money, err := strconv.ParseFloat(moneyFromRequest, 64)
 
 	if err != nil {
-		log.Fatal(err)
+		js, _ := json.Marshal(WrongParams400rm)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(js)
+		return
 	}
 
-	money := math.Round(m*100) / 100
+	userID, status := _increase(userIDFromRequest, math.Round(money*100)/100)
 
-	_increase(userID, money) //
+	w.WriteHeader(status)
+	w.Write(userID)
+	return
 }
 
 func decrease(w http.ResponseWriter, r *http.Request) {
-	userIDFromRequest := r.URL.Query().Get("id")
-	moneyFromRequest := r.URL.Query().Get("money")
-
-	userID, err := strconv.ParseUint(userIDFromRequest, 10, 64)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	m, err := strconv.ParseFloat(moneyFromRequest, 64)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	money := math.Round(m*100) / 100
-
-	_decrease(userID, money)
+	//
 }
 
 func remittance(w http.ResponseWriter, r *http.Request) {

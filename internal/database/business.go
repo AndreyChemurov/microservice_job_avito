@@ -1,9 +1,13 @@
 package database
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
+	"microservice_job_avito/internal/types"
+	"net/http"
+
+	"database/sql"
+	"encoding/json"
+	"fmt"
 
 	"github.com/gchaincl/dotsql"
 	_ "github.com/lib/pq" //
@@ -19,94 +23,126 @@ const (
 
 var postgresInfo = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 
-// 1. check if user exists
-// 2. get balance
-// 3. if not exists, return error
-func _getBalance(userID uint64) error {
+func _getBalance(userID string) ([]byte, int) {
 	db, err := sql.Open("postgres", postgresInfo)
 
 	if err != nil {
-		panic(err)
+		js, _ := json.Marshal(NoDatabaseConnection500rm)
+		return js, http.StatusInternalServerError
 	}
 
 	defer db.Close()
 
 	dot, err := dotsql.LoadFromFile("start.sql")
 
-	balance, err := dot.QueryRow(db, "get-user-balance", userID)
-
-	if err == sql.ErrNoRows || err != nil {
-		panic(err)
-	}
-
-	log.Println(balance) // return json
-	return nil
-}
-
-// 1. check if user exists
-// 2. increase balance
-// 3. if not exists, return error
-func _increase(userID uint64, money float64) {
-	db, err := sql.Open("postgres", postgresInfo)
+	// check if user exists
+	userRow, err := dot.QueryRow(db, "check-user-exists", userID)
 
 	if err != nil {
-		panic(err)
+		js, _ := json.Marshal(InternalServerError500rm)
+		return js, http.StatusInternalServerError
 	}
 
-	defer db.Close()
-
-	dot, err := dotsql.LoadFromFile("start.sql")
-
-	_, err = dot.QueryRow(db, "get-user-balance", userID)
+	var userIDCheck string
+	err = userRow.Scan(&userIDCheck)
 
 	if err == sql.ErrNoRows {
+		js, _ := json.Marshal(UserDoesNotExist400rm)
+		return js, http.StatusBadRequest
+	} else if err != nil {
+		js, _ := json.Marshal(InternalServerError500rm)
+		return js, http.StatusInternalServerError
+	}
+
+	// if user exists
+	b, _ := dot.QueryRow(db, "get-user-balance", userID)
+
+	var balance float64
+	err = b.Scan(&balance)
+
+	if err != nil {
+		js, _ := json.Marshal(InternalServerError500rm)
+		return js, http.StatusInternalServerError
+	}
+
+	returnBalance := types.Balance{Bal: balance}
+
+	js, _ := json.Marshal(returnBalance)
+	return js, http.StatusOK
+}
+
+func _increase(userID string, money float64) ([]byte, int) {
+	db, err := sql.Open("postgres", postgresInfo)
+
+	if err != nil {
+		js, _ := json.Marshal(NoDatabaseConnection500rm)
+		return js, http.StatusInternalServerError
+	}
+
+	defer db.Close()
+
+	dot, err := dotsql.LoadFromFile("start.sql")
+
+	// check if user exists
+	userRow, err := dot.QueryRow(db, "check-user-exists", userID)
+
+	if err != nil {
+		js, _ := json.Marshal(InternalServerError500rm)
+		return js, http.StatusInternalServerError
+	}
+
+	var userIDCheck string
+	err = userRow.Scan(&userIDCheck)
+
+	if err == sql.ErrNoRows {
+
+		_, err = dot.Exec(db, "create-user", userID)
+
+		if err != nil {
+			js, _ := json.Marshal(InternalServerError500rm)
+			return js, http.StatusInternalServerError
+		}
+
 		_, err = dot.Exec(db, "create-balance", userID)
 
 		if err != nil {
-			panic(err)
+			js, _ := json.Marshal(InternalServerError500rm)
+			return js, http.StatusInternalServerError
 		}
 
 	} else if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
+
+	// increase balance
 
 	_, err = dot.Exec(db, "remittance-to", money, userID)
 
 	if err != nil {
-		panic(err)
+		js, _ := json.Marshal(InternalServerError500rm)
+		return js, http.StatusInternalServerError
 	}
-}
 
-// 1. check if user exists
-// 2. decrease balance
-// 3. if not exists, return error
-func _decrease(userID uint64, money float64) {
-	db, err := sql.Open("postgres", postgresInfo)
+	b, err := dot.QueryRow(db, "get-user-balance", userID)
+
+	var balance float64
+	err = b.Scan(&balance)
 
 	if err != nil {
-		panic(err)
+		js, _ := json.Marshal(InternalServerError500rm)
+		return js, http.StatusInternalServerError
 	}
 
-	defer db.Close()
+	returnBalance := types.Balance{Bal: balance}
 
-	dot, err := dotsql.LoadFromFile("start.sql")
-
-	_, err = dot.QueryRow(db, "get-user-balance", userID)
-
-	if err == sql.ErrNoRows || err != nil {
-		panic(err)
-	}
-
-	_, err = dot.Exec(db, "remittance-from", money, userID)
-
-	if err != nil {
-		panic(err)
-	}
+	js, _ := json.Marshal(returnBalance)
+	return js, http.StatusOK
 }
 
-// 1. check if both users exist
-// 2. decrease balance from user 1
-// 3. increase balance for user 2
-func _remittance(userIDFrom uint64, userIDTo uint64, money float64) {
+func _decrease(userID string, money float64) {
+	//
+}
+
+func _remittance(userIDFrom string, userIDTo string, money float64) {
 	//
 }

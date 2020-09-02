@@ -1,23 +1,23 @@
 -- name: create-user-table
-CREATE TABLE user_job (
-    user_id BIGSERIAL PRIMARY KEY NOT NULL
+CREATE TABLE IF NOT EXISTS "user_job" (
+    "user_id" TEXT NOT NULL PRIMARY KEY UNIQUE
 );
 
 -- name: create-balance-table
-CREATE TABLE balance_job (
-    balance_id BIGSERIAL PRIMARY KEY NOT NULL,
-    user_id INTEGER REFERENCES user_job(user_id),
-    amount NUMERIC NOT NULL
+CREATE TABLE IF NOT EXISTS "balance_job" (
+    "balance_id" BIGSERIAL PRIMARY KEY NOT NULL,
+    "user_id" TEXT REFERENCES user_job(user_id),
+    "amount" NUMERIC(1000, 2) NOT NULL
 );
 
 --name: get-user-balance
-SELECT count FROM balance_job WHERE user_id = ?
+SELECT amount FROM balance_job WHERE user_id = $1
 
 --name: remittance-from
-UPDATE balance_job SET count = count - ? WHERE user_id = ? AND count > 0
+UPDATE balance_job SET amount = amount - $1 WHERE user_id = $2 AND amount > 0
 
 --name: remittance-to
-UPDATE balance_job SET count = count + ? WHERE user_id = ?
+UPDATE balance_job SET amount = amount + $1 WHERE user_id = $2
 
 --name: drop-user-table
 DROP TABLE IF EXISTS user_job
@@ -26,10 +26,10 @@ DROP TABLE IF EXISTS user_job
 DROP TABLE IF EXISTS balance_job
 
 --name: create-user
-INSERT INTO user_job VALUES (DEFAULT)
+INSERT INTO user_job VALUES ($1)
 
 --name: create-balance
-INSERT INTO balance_job VALUES (DEFAULT, ?, 0)
+INSERT INTO balance_job VALUES (DEFAULT, $1, 0)
 
---name: check-users-exist
-SELECT count(*) FROM (SELECT * FROM user_job LIMIT 1) AS t
+--name: check-user-exists
+SELECT user_id FROM user_job WHERE user_id = $1
