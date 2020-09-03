@@ -9,7 +9,8 @@ cd microservice_job_avito/
 ## Примеры запросов/ответов
 
 ### Через Postman
-> /balance </br>
+> /balance
+</br>
 pass
 
 > /increase </br>
