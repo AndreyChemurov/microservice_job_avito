@@ -2,10 +2,50 @@
 
 ## Запуск приложения
 ```
-pass
+git clone https://github.com/AndreyChemurov/microservice_job_avito.git
+cd microservice_job_avito/
+[sudo] docker-compose up
 ```
 ## Примеры запросов/ответов
-pass
+
+### Через Postman
+> /balance
+pass </br>
+
+> /increase
+pass </br>
+
+> /decrease
+pass </br>
+
+> /remittance
+pass </br>
+
+### Через curl
+> /balance
+pass </br>
+
+> /increase
+pass </br>
+
+> /decrease
+pass </br>
+
+> /remittance
+pass </br>
+
+### Через браузер
+> /balance
+pass </br>
+
+> /increase
+pass </br>
+
+> /decrease
+pass </br>
+
+> /remittance
+pass </br>
 
 ## Запуск тестов
 ```
