@@ -9,43 +9,43 @@ cd microservice_job_avito/
 ## Примеры запросов/ответов
 
 ### Через Postman
-> /balance
-pass </br>
+> /balance </br>
+pass
 
-> /increase
-pass </br>
+> /increase </br>
+pass
 
-> /decrease
-pass </br>
+> /decrease </br>
+pass
 
-> /remittance
-pass </br>
+> /remittance </br>
+pass
 
 ### Через curl
-> /balance
-pass </br>
+> /balance </br>
+pass
 
-> /increase
-pass </br>
+> /increase </br>
+pass
 
-> /decrease
-pass </br>
+> /decrease </br>
+pass
 
-> /remittance
-pass </br>
+> /remittance </br>
+pass
 
 ### Через браузер
-> /balance
-pass </br>
+> /balance </br>
+pass
 
-> /increase
-pass </br>
+> /increase </br>
+pass
 
-> /decrease
-pass </br>
+> /decrease </br>
+pass
 
-> /remittance
-pass </br>
+> /remittance </br>
+pass
 
 ## Запуск тестов
 ```
