@@ -1,13 +1,13 @@
 package database
 
-type rm map[string]map[string]string // rm stands for Response Message
+type rm map[string]map[string]interface{} // rm stands for Response Message
 
 // var name: <rm_name><http_status_code>rm
 
 // NotFound404rm ...
 var NotFound404rm rm = rm{
 	"error": {
-		"status_code":    "404",
+		"status_code":    404,
 		"status_message": "Not Found",
 	},
 }
@@ -15,7 +15,7 @@ var NotFound404rm rm = rm{
 // NoDatabaseConnection500rm ...
 var NoDatabaseConnection500rm rm = rm{
 	"error": {
-		"status_code":    "500",
+		"status_code":    500,
 		"status_message": "Service cannot connect to database",
 	},
 }
@@ -23,7 +23,7 @@ var NoDatabaseConnection500rm rm = rm{
 // UserDoesNotExist400rm ...
 var UserDoesNotExist400rm rm = rm{
 	"error": {
-		"status_code":    "400",
+		"status_code":    400,
 		"status_message": "User does not exist",
 	},
 }
@@ -31,7 +31,7 @@ var UserDoesNotExist400rm rm = rm{
 // WrongParams400rm ...
 var WrongParams400rm rm = rm{
 	"error": {
-		"status_code":    "400",
+		"status_code":    400,
 		"status_message": "Wrong parameter(s)",
 	},
 }
@@ -39,7 +39,15 @@ var WrongParams400rm rm = rm{
 // InternalServerError500rm ...
 var InternalServerError500rm rm = rm{
 	"error": {
-		"status_code":    "500",
+		"status_code":    500,
 		"status_message": "Internal Server Error",
+	},
+}
+
+// DecreaseMore400rm ...
+var DecreaseMore400rm rm = rm{
+	"error": {
+		"status_code":    400,
+		"status_message": "Operation not available: Debit exceeds the balance",
 	},
 }

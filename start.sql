@@ -7,14 +7,14 @@ CREATE TABLE IF NOT EXISTS "user_job" (
 CREATE TABLE IF NOT EXISTS "balance_job" (
     "balance_id" BIGSERIAL PRIMARY KEY NOT NULL,
     "user_id" TEXT REFERENCES user_job(user_id),
-    "amount" NUMERIC(1000, 2) NOT NULL
+    "amount" NUMERIC(1000, 2) CHECK ("amount" >= 0.0) NOT NULL
 );
 
 --name: get-user-balance
 SELECT amount FROM balance_job WHERE user_id = $1
 
 --name: remittance-from
-UPDATE balance_job SET amount = amount - $1 WHERE user_id = $2 AND amount > 0
+UPDATE balance_job SET amount = amount - $1 WHERE user_id = $2
 
 --name: remittance-to
 UPDATE balance_job SET amount = amount + $1 WHERE user_id = $2
