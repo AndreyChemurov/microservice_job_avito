@@ -51,3 +51,19 @@ var DecreaseMore400rm rm = rm{
 		"status_message": "Operation not available: Debit exceeds the balance",
 	},
 }
+
+// MethodNotAllowed405rm ...
+var MethodNotAllowed405rm rm = rm{
+	"error": {
+		"status_code":    405,
+		"status_message": "Method not allowed: use GET or POST",
+	},
+}
+
+// BadJSON400rm ...
+var BadJSON400rm rm = rm{
+	"error": {
+		"status_code":    400,
+		"status_message": "Invalid JSON format",
+	},
+}

@@ -1,11 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"microservice_job_avito/internal/database"
-
-	"database/sql"
 
 	"github.com/gchaincl/dotsql"
 	_ "github.com/lib/pq" //

@@ -1,13 +1,12 @@
 package database
 
 import (
-	"log"
-	"microservice_job_avito/internal/types"
-	"net/http"
-
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
+	"microservice_job_avito/internal/types"
+	"net/http"
 
 	"github.com/gchaincl/dotsql"
 	_ "github.com/lib/pq" //
@@ -96,16 +95,16 @@ func _increase(userID string, money float64) ([]byte, int) {
 
 	if err == sql.ErrNoRows {
 
-		_, err = dot.Exec(db, "create-user", userID)
+		// _, err = dot.Exec(db, "create-user", userID)
 
-		if err != nil {
+		if _, err = dot.Exec(db, "create-user", userID); err != nil {
 			js, _ := json.Marshal(InternalServerError500rm)
 			return js, http.StatusInternalServerError
 		}
 
-		_, err = dot.Exec(db, "create-balance", userID)
+		// _, err = dot.Exec(db, "create-balance", userID)
 
-		if err != nil {
+		if _, err = dot.Exec(db, "create-balance", userID); err != nil {
 			js, _ := json.Marshal(InternalServerError500rm)
 			return js, http.StatusInternalServerError
 		}
@@ -185,9 +184,9 @@ func _decrease(userID string, money float64) ([]byte, int) {
 		return js, http.StatusBadRequest
 	}
 
-	_, err = dot.Exec(db, "remittance-from", money, userID)
+	// _, err = dot.Exec(db, "remittance-from", money, userID)
 
-	if err != nil {
+	if _, err = dot.Exec(db, "remittance-from", money, userID); err != nil {
 		js, _ := json.Marshal(InternalServerError500rm)
 		return js, http.StatusInternalServerError
 	}
@@ -270,16 +269,16 @@ func _remittance(userIDFrom string, userIDTo string, money float64) ([]byte, int
 	}
 
 	// remittance
-	_, err = dot.Exec(db, "remittance-from", money, userIDFrom)
+	// _, err = dot.Exec(db, "remittance-from", money, userIDFrom)
 
-	if err != nil {
+	if _, err = dot.Exec(db, "remittance-from", money, userIDFrom); err != nil {
 		js, _ := json.Marshal(InternalServerError500rm)
 		return js, http.StatusInternalServerError
 	}
 
-	_, err = dot.Exec(db, "remittance-to", money, userIDTo)
+	// _, err = dot.Exec(db, "remittance-to", money, userIDTo)
 
-	if err != nil {
+	if _, err = dot.Exec(db, "remittance-to", money, userIDTo); err != nil {
 		js, _ := json.Marshal(InternalServerError500rm)
 		return js, http.StatusInternalServerError
 	}
