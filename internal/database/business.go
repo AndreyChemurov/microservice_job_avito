@@ -34,7 +34,7 @@ func _getBalance(userID string) ([]byte, int) {
 
 	dot, err := dotsql.LoadFromFile("start.sql")
 
-	// check if user exists
+	// Проверить, существует ли пользователь с данным id
 	userRow, err := dot.QueryRow(db, "check-user-exists", userID)
 
 	if err != nil {
@@ -53,7 +53,7 @@ func _getBalance(userID string) ([]byte, int) {
 		return js, http.StatusInternalServerError
 	}
 
-	// if user exists
+	// Если пользователь существует
 	b, _ := dot.QueryRow(db, "get-user-balance", userID)
 
 	var balance float64
@@ -82,7 +82,7 @@ func _increase(userID string, money float64) ([]byte, int) {
 
 	dot, err := dotsql.LoadFromFile("start.sql")
 
-	// check if user exists
+	// Проверить, существует ли пользователь с данным id
 	userRow, err := dot.QueryRow(db, "check-user-exists", userID)
 
 	if err != nil {
@@ -95,14 +95,10 @@ func _increase(userID string, money float64) ([]byte, int) {
 
 	if err == sql.ErrNoRows {
 
-		// _, err = dot.Exec(db, "create-user", userID)
-
 		if _, err = dot.Exec(db, "create-user", userID); err != nil {
 			js, _ := json.Marshal(InternalServerError500rm)
 			return js, http.StatusInternalServerError
 		}
-
-		// _, err = dot.Exec(db, "create-balance", userID)
 
 		if _, err = dot.Exec(db, "create-balance", userID); err != nil {
 			js, _ := json.Marshal(InternalServerError500rm)
@@ -113,8 +109,7 @@ func _increase(userID string, money float64) ([]byte, int) {
 		log.Fatal(err)
 	}
 
-	// increase balance
-
+	// Увелечить баланс
 	_, err = dot.Exec(db, "remittance-to", money, userID)
 
 	if err != nil {
@@ -150,7 +145,7 @@ func _decrease(userID string, money float64) ([]byte, int) {
 
 	dot, err := dotsql.LoadFromFile("start.sql")
 
-	// check if user exists
+	// Проверить, существует ли пользователь с данным id
 	userRow, err := dot.QueryRow(db, "check-user-exists", userID)
 
 	if err != nil {
@@ -169,8 +164,7 @@ func _decrease(userID string, money float64) ([]byte, int) {
 		return js, http.StatusInternalServerError
 	}
 
-	// decrease balance
-
+	// Уменьшить баланс
 	b, err := dot.QueryRow(db, "get-user-balance", userID)
 
 	var balance float64
@@ -179,12 +173,10 @@ func _decrease(userID string, money float64) ([]byte, int) {
 	if err != nil {
 		js, _ := json.Marshal(InternalServerError500rm)
 		return js, http.StatusInternalServerError
-	} else if balance < money {
+	} else if balance < money { // Пользовтелеь не имеет достаточное количество средств для списания
 		js, _ := json.Marshal(DecreaseMore400rm)
 		return js, http.StatusBadRequest
 	}
-
-	// _, err = dot.Exec(db, "remittance-from", money, userID)
 
 	if _, err = dot.Exec(db, "remittance-from", money, userID); err != nil {
 		js, _ := json.Marshal(InternalServerError500rm)
@@ -217,7 +209,7 @@ func _remittance(userIDFrom string, userIDTo string, money float64) ([]byte, int
 
 	dot, err := dotsql.LoadFromFile("start.sql")
 
-	// check if userFrom exists
+	// Проверить, существует ли пользователь, с баланса которого нужно списать средства
 	userRow, err := dot.QueryRow(db, "check-user-exists", userIDFrom)
 
 	if err != nil {
@@ -236,7 +228,7 @@ func _remittance(userIDFrom string, userIDTo string, money float64) ([]byte, int
 		return js, http.StatusInternalServerError
 	}
 
-	// check if userTo exists
+	// Проверить, существует ли пользователь, на баланс которому нужно перевести средства
 	userRow, err = dot.QueryRow(db, "check-user-exists", userIDTo)
 
 	if err != nil {
@@ -254,7 +246,7 @@ func _remittance(userIDFrom string, userIDTo string, money float64) ([]byte, int
 		return js, http.StatusInternalServerError
 	}
 
-	// check if userFrom has enough money
+	// Проверить, что пользователь, с баланса которого нужно списать средства, имеет достаточно средств для списания
 	b, err := dot.QueryRow(db, "get-user-balance", userIDFrom)
 
 	var balance float64
@@ -268,15 +260,10 @@ func _remittance(userIDFrom string, userIDTo string, money float64) ([]byte, int
 		return js, http.StatusBadRequest
 	}
 
-	// remittance
-	// _, err = dot.Exec(db, "remittance-from", money, userIDFrom)
-
 	if _, err = dot.Exec(db, "remittance-from", money, userIDFrom); err != nil {
 		js, _ := json.Marshal(InternalServerError500rm)
 		return js, http.StatusInternalServerError
 	}
-
-	// _, err = dot.Exec(db, "remittance-to", money, userIDTo)
 
 	if _, err = dot.Exec(db, "remittance-to", money, userIDTo); err != nil {
 		js, _ := json.Marshal(InternalServerError500rm)

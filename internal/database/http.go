@@ -22,6 +22,11 @@ func PathHandler() {
 	log.Fatal(http.ListenAndServe(":8000", nil))
 }
 
+// Метод получения текущего баланса пользователя.
+// Аргументы:
+//		id: уникальный идентификатор пользователя;
+// Возвращаемые значения:
+//		balance: текущий баланс пользователя;
 func getBalance(w http.ResponseWriter, r *http.Request) {
 	var (
 		contentType string = r.Header.Get("Content-Type")
@@ -42,7 +47,7 @@ func getBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// params parsing
+	// Парсинг параметров
 	if contentType == "application/x-www-form-urlencoded" {
 		r.ParseForm()
 		userIDFromRequest = r.Form.Get("id")
@@ -51,8 +56,6 @@ func getBalance(w http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
 
 		var reqData types.UserIDBalance
-
-		// err := decoder.Decode(&reqData)
 
 		if err := decoder.Decode(&reqData); err != nil {
 			log.Println(r.Method, r.URL.Path, http.StatusBadRequest, BadJSON400rm["error"]["status_message"])
@@ -69,6 +72,7 @@ func getBalance(w http.ResponseWriter, r *http.Request) {
 		userIDFromRequest = r.URL.Query().Get("id")
 	}
 
+	// Если параметры введены неверно
 	if userIDFromRequest == "" {
 		log.Println(r.Method, r.URL.Path, http.StatusBadRequest, WrongParams400rm["error"]["status_message"])
 
@@ -87,6 +91,12 @@ func getBalance(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// Метод начисления и списания средств.
+// Аргументы:
+//		id: уникальный идентификатор пользователя;
+//		money: количество средст для зачисления/списания;
+// Возвращаемые значения:
+//		balance: текущий баланс пользователя;
 func increaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 	var (
 		contentType string = r.Header.Get("Content-Type")
@@ -108,7 +118,7 @@ func increaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// params parsing
+	// Парсинг параметров
 	if contentType == "application/x-www-form-urlencoded" {
 		r.ParseForm()
 		userIDFromRequest = r.Form.Get("id")
@@ -118,8 +128,6 @@ func increaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
 
 		var reqData types.IncreaseDecrease
-
-		// err := decoder.Decode(&reqData)
 
 		if err := decoder.Decode(&reqData); err != nil {
 			log.Println(r.Method, r.URL.Path, http.StatusBadRequest, BadJSON400rm["error"]["status_message"])
@@ -138,6 +146,7 @@ func increaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 		moneyFromRequest = r.URL.Query().Get("money")
 	}
 
+	// Если параметры введены неверно
 	if userIDFromRequest == "" || moneyFromRequest == "" {
 		log.Println(r.Method, r.URL.Path, http.StatusBadRequest, WrongParams400rm["error"]["status_message"])
 
@@ -147,6 +156,7 @@ func increaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Если в указанной сумме используется запятая, а не точка
 	moneyFromRequest = strings.Replace(moneyFromRequest, ",", ".", -1)
 	money, err := strconv.ParseFloat(moneyFromRequest, 64)
 
@@ -172,6 +182,13 @@ func increaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// Метод перевода средств от пользователя к пользователю.
+// Аргументы:
+//		from: уникальный идентификатор пользователя, с баланса которого надо списать средства;
+//		to: уникальный идентификатор пользователя, на баланс которого надо перечислить средства;
+//		money: количество средст для зачисления;
+// Возвращаемые значения:
+//		balance: текущие балансы обоих пользователей;
 func remittance(w http.ResponseWriter, r *http.Request) {
 	var (
 		contentType string = r.Header.Get("Content-Type")
@@ -194,7 +211,7 @@ func remittance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// params parsing
+	// Парсинг параметров
 	if contentType == "application/x-www-form-urlencoded" {
 		r.ParseForm()
 
@@ -206,8 +223,6 @@ func remittance(w http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
 
 		var reqData types.RemittanceRequest
-
-		// err := decoder.Decode(&reqData)
 
 		if err := decoder.Decode(&reqData); err != nil {
 			log.Println(r.Method, r.URL.Path, http.StatusBadRequest, BadJSON400rm["error"]["status_message"])
@@ -228,6 +243,7 @@ func remittance(w http.ResponseWriter, r *http.Request) {
 		moneyFromRequest = r.URL.Query().Get("money")
 	}
 
+	// Если параметры введены неверно
 	if userFromIDRequest == "" || userToIDRequest == "" || moneyFromRequest == "" {
 		log.Println(r.Method, r.URL.Path, http.StatusBadRequest, WrongParams400rm["error"]["status_message"])
 
@@ -237,6 +253,7 @@ func remittance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Если в указанной сумме используется запятая, а не точка
 	moneyFromRequest = strings.Replace(moneyFromRequest, ",", ".", -1)
 	money, err := strconv.ParseFloat(moneyFromRequest, 64)
 
@@ -258,6 +275,7 @@ func remittance(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// Метод, который вызывается, если указанный путь не найден.
 func notFound(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.Method, r.URL.Path, http.StatusNotFound, NotFound404rm["error"]["status_message"])
 
