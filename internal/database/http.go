@@ -31,11 +31,14 @@ func getBalance(w http.ResponseWriter, r *http.Request) {
 	var (
 		contentType string = r.Header.Get("Content-Type")
 
-		userIDFromRequest string
-		js                []byte
+		userIDFromRequest   string
+		currencyFromRequest string
+		currencyFlag        bool = false
+		js                  []byte
 
-		balance []byte
-		status  int
+		balance     []byte
+		status      int
+		responseMsg interface{}
 	)
 
 	if r.Method != "POST" && r.Method != "GET" {
@@ -45,6 +48,28 @@ func getBalance(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write(js)
 		return
+	}
+
+	if contentType != "" {
+		// Метод POST, Content-Type, но URL-параметры вместо тела
+		if _, exist := r.URL.Query()["id"]; exist {
+			log.Println(r.Method, r.URL.Path, http.StatusBadRequest, URLParams400rm["error"]["status_message"])
+
+			js, _ = json.Marshal(URLParams400rm)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(js)
+			return
+		}
+
+		// Метод GET и пустое тело
+		if r.Method == "GET" && userIDFromRequest == "" {
+			log.Println(r.Method, r.URL.Path, http.StatusMethodNotAllowed, ContentTypeGETMethod405rm["error"]["status_message"])
+
+			js, _ = json.Marshal(ContentTypeGETMethod405rm)
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			w.Write(js)
+			return
+		}
 	}
 
 	// Парсинг параметров
@@ -70,6 +95,19 @@ func getBalance(w http.ResponseWriter, r *http.Request) {
 
 	} else if contentType == "" {
 		userIDFromRequest = r.URL.Query().Get("id")
+		currencyFromRequest = r.URL.Query().Get("currency")
+
+		if currencyFromRequest != "" {
+			currencyFlag = true
+		}
+
+	} else {
+		log.Println(r.Method, r.URL.Path, http.StatusBadRequest, UnknownContentType400rm["error"]["status_message"])
+
+		js, _ = json.Marshal(UnknownContentType400rm)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(js)
+		return
 	}
 
 	// Если параметры введены неверно
@@ -82,9 +120,9 @@ func getBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	balance, status = _getBalance(userIDFromRequest)
+	balance, status, responseMsg = _getBalance(userIDFromRequest, currencyFlag, currencyFromRequest)
 
-	log.Println(r.Method, r.URL.Path, http.StatusOK, "OK")
+	log.Println(r.Method, r.URL.Path, status, responseMsg)
 
 	w.WriteHeader(status)
 	w.Write(balance)
@@ -105,8 +143,9 @@ func increaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 		moneyFromRequest  string
 		js                []byte
 
-		balance []byte
-		status  int
+		balance     []byte
+		status      int
+		responseMsg interface{}
 	)
 
 	if r.Method != "POST" && r.Method != "GET" {
@@ -118,9 +157,36 @@ func increaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	params := [2]string{"id", "money"}
+
+	if contentType != "" {
+		// Метод POST, Content-Type, но URL-параметры вместо тела
+		for _, param := range params {
+			if _, exist := r.URL.Query()[param]; exist {
+				log.Println(r.Method, r.URL.Path, http.StatusBadRequest, URLParams400rm["error"]["status_message"])
+
+				js, _ = json.Marshal(URLParams400rm)
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(js)
+				return
+			}
+		}
+
+		// Метод GET и пустое тело
+		if r.Method == "GET" && (userIDFromRequest == "" || moneyFromRequest == "") {
+			log.Println(r.Method, r.URL.Path, http.StatusMethodNotAllowed, ContentTypeGETMethod405rm["error"]["status_message"])
+
+			js, _ = json.Marshal(ContentTypeGETMethod405rm)
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			w.Write(js)
+			return
+		}
+	}
+
 	// Парсинг параметров
 	if contentType == "application/x-www-form-urlencoded" {
 		r.ParseForm()
+
 		userIDFromRequest = r.Form.Get("id")
 		moneyFromRequest = r.Form.Get("money")
 
@@ -144,6 +210,13 @@ func increaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 	} else if contentType == "" {
 		userIDFromRequest = r.URL.Query().Get("id")
 		moneyFromRequest = r.URL.Query().Get("money")
+	} else {
+		log.Println(r.Method, r.URL.Path, http.StatusBadRequest, UnknownContentType400rm["error"]["status_message"])
+
+		js, _ = json.Marshal(UnknownContentType400rm)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(js)
+		return
 	}
 
 	// Если параметры введены неверно
@@ -170,12 +243,12 @@ func increaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.URL.Path == "/increase" {
-		balance, status = _increase(userIDFromRequest, math.Round(money*100)/100)
+		balance, status, responseMsg = _increase(userIDFromRequest, math.Round(money*100)/100)
 	} else if r.URL.Path == "/decrease" {
-		balance, status = _decrease(userIDFromRequest, math.Round(money*100)/100)
+		balance, status, responseMsg = _decrease(userIDFromRequest, math.Round(money*100)/100)
 	}
 
-	log.Println(r.Method, r.URL.Path, http.StatusOK, "OK")
+	log.Println(r.Method, r.URL.Path, status, responseMsg)
 
 	w.WriteHeader(status)
 	w.Write(balance)
@@ -198,8 +271,9 @@ func remittance(w http.ResponseWriter, r *http.Request) {
 		moneyFromRequest  string
 		js                []byte
 
-		balance []byte
-		status  int
+		balance     []byte
+		status      int
+		responseMsg interface{}
 	)
 
 	if r.Method != "POST" && r.Method != "GET" {
@@ -209,6 +283,32 @@ func remittance(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write(js)
 		return
+	}
+
+	params := [3]string{"from", "to", "money"}
+
+	if contentType != "" {
+		// Метод POST, Content-Type, но URL-параметры вместо тела
+		for _, param := range params {
+			if _, exist := r.URL.Query()[param]; exist {
+				log.Println(r.Method, r.URL.Path, http.StatusBadRequest, URLParams400rm["error"]["status_message"])
+
+				js, _ = json.Marshal(URLParams400rm)
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(js)
+				return
+			}
+		}
+
+		// Метод GET и пустое тело
+		if r.Method == "GET" && (userFromIDRequest == "" || userToIDRequest == "" || moneyFromRequest == "") {
+			log.Println(r.Method, r.URL.Path, http.StatusMethodNotAllowed, ContentTypeGETMethod405rm["error"]["status_message"])
+
+			js, _ = json.Marshal(ContentTypeGETMethod405rm)
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			w.Write(js)
+			return
+		}
 	}
 
 	// Парсинг параметров
@@ -241,6 +341,13 @@ func remittance(w http.ResponseWriter, r *http.Request) {
 		userFromIDRequest = r.URL.Query().Get("from")
 		userToIDRequest = r.URL.Query().Get("to")
 		moneyFromRequest = r.URL.Query().Get("money")
+	} else {
+		log.Println(r.Method, r.URL.Path, http.StatusBadRequest, UnknownContentType400rm["error"]["status_message"])
+
+		js, _ = json.Marshal(UnknownContentType400rm)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(js)
+		return
 	}
 
 	// Если параметры введены неверно
@@ -266,9 +373,9 @@ func remittance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	balance, status = _remittance(userFromIDRequest, userToIDRequest, math.Round(money*100)/100)
+	balance, status, responseMsg = _remittance(userFromIDRequest, userToIDRequest, math.Round(money*100)/100)
 
-	log.Println(r.Method, r.URL.Path, http.StatusOK, "OK")
+	log.Println(r.Method, r.URL.Path, status, responseMsg)
 
 	w.WriteHeader(status)
 	w.Write(balance)

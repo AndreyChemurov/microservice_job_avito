@@ -32,3 +32,10 @@ type RemittanceRequest struct {
 	IDTo   string `json:"to"`
 	Money  string `json:"money"`
 }
+
+// Currency ...
+type Currency struct {
+	Rates map[string]float64 `json:"rates"`
+	Base  string             `json:"base"`
+	Date  string             `json:"date"`
+}

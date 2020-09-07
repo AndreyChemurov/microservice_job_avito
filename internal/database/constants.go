@@ -60,10 +60,42 @@ var MethodNotAllowed405rm rm = rm{
 	},
 }
 
+// ContentTypeGETMethod405rm ...
+var ContentTypeGETMethod405rm rm = rm{
+	"error": {
+		"status_code":    405,
+		"status_message": "Method not allowed: use POST-method and body parameters with Content-Type",
+	},
+}
+
+// URLParams400rm ...
+var URLParams400rm rm = rm{
+	"error": {
+		"status_code":    400,
+		"status_message": "POST-method and Content-Type require body parameters, not URL",
+	},
+}
+
 // BadJSON400rm ...
 var BadJSON400rm rm = rm{
 	"error": {
 		"status_code":    400,
 		"status_message": "Invalid JSON format",
+	},
+}
+
+// UnknownContentType400rm ...
+var UnknownContentType400rm rm = rm{
+	"error": {
+		"status_code":    400,
+		"status_message": "Unknown Content-Type",
+	},
+}
+
+// WrongBaseFormat400rm ...
+var WrongBaseFormat400rm rm = rm{
+	"error": {
+		"status_code":    400,
+		"status_message": "Wrong base format for currency, example: USD, EUR, RUB",
 	},
 }
