@@ -41,85 +41,85 @@ cd microservice_job_avito/
 ### Через curl
 - /balance </br>
 ```curl http://localhost:8000/balance?id=someuser``` </br>
-```curl 'http://localhost:8000/balance?id=someuser&currency=USD'``` </br>
-
-```
+```curl 'http://localhost:8000/balance?id=someuser&currency=USD'```
+</br>
+```bash
 curl --header "Content-Type: application/x-www-form-urlencoded" \
---data "id=someuser" \
---request POST \
-http://localhost:8000/balance
+  --data "id=someuser" \
+  --request POST \
+  http://localhost:8000/balance
 ```
 </br>
-```
+```bash
 curl --header "Content-Type: application/x-www-form-urlencoded" \
---data "id=someuser&currency=USD" \
---request POST \
-http://localhost:8000/balance
+  --data "id=someuser&currency=USD" \
+  --request POST \
+  http://localhost:8000/balance
 ```
 </br>
-```
+```bash
 curl --header "Content-Type: application/json" \
---data '{"id": "someuser"}' \
---request POST \
-http://localhost:8000/balance
+  --data '{"id": "someuser"}' \
+  --request POST \
+  http://localhost:8000/balance
 ```
 </br>
-```
+```bash
 curl --header "Content-Type: application/json" \
---data '{"id": "someuser", "currency": "USD"}' \
---request POST \
-http://localhost:8000/balance
+  --data '{"id": "someuser", "currency": "USD"}' \
+  --request POST \
+  http://localhost:8000/balance
 ```
 </br>
 - /increase
 ```curl 'http://localhost:8000/increase?id=someuser&money=100'```
 </br>
-```
+```bash
 curl --header "Content-Type: application/x-www-form-urlencoded" \
---data "id=someuser&money=100" \
---request POST \
-http://localhost:8000/increase
+  --data "id=someuser&money=100" \
+  --request POST \
+  http://localhost:8000/increase
 ```
 </br>
-```
+```bash
 curl --header "Content-Type: application/json" \
---data '{"id": "someuser", "money": "100"}' \
---request POST \
-http://localhost:8000/increase
+  --data '{"id": "someuser", "money": "100"}' \
+  --request POST \
+  http://localhost:8000/increase
 ```
 </br>
 - /decrease
 ```curl 'http://localhost:8000/decrease?id=someuser&money=100'```
 </br>
-```
+```bash
 curl --header "Content-Type: application/x-www-form-urlencoded" \
---data "id=someuser&money=100" \
---request POST \
-http://localhost:8000/decrease
+  --data "id=someuser&money=100" \
+  --request POST \
+  http://localhost:8000/decrease
 ```
 </br>
-```
+```bash
 curl --header "Content-Type: application/json" \
---data '{"id": "someuser", "money": "100"}' \
---request POST \
-http://localhost:8000/decrease
+  --data '{"id": "someuser", "money": "100"}' \
+  --request POST \
+  http://localhost:8000/decrease
 ```
 </br>
 - /remittance
 ```curl 'http://localhost:8000/remittance?from=someuser&to=someuser2&money=100'```
 </br>
-```
+```bash
 curl --header "Content-Type: application/x-www-form-urlencoded" \
---data "from=someuser&to=someuser2&money=100" \
---request POST \
-http://localhost:8000/remittance
+  --data "from=someuser&to=someuser2&money=100" \
+  --request POST \
+  http://localhost:8000/remittance
 ```
 </br>
-```
+```bash
 curl --header "Content-Type: application/json" \
---data '{"from": "someuser", "to": "someuser2", "money": "100"}' \
---request POST \
-http://localhost:8000/remittance
+  --data '{"from": "someuser", "to": "someuser2", "money": "100"}' \
+  --request POST \
+  http://localhost:8000/remittance
 ```
 </br>
 ### Через браузер
