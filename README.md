@@ -43,28 +43,28 @@ cd microservice_job_avito/
 ```curl http://localhost:8000/balance?id=someuser``` </br>
 ```curl 'http://localhost:8000/balance?id=someuser&currency=USD'``` </br>
 
-```shell
+```
 curl --header "Content-Type: application/x-www-form-urlencoded" \
 --data "id=someuser" \
 --request POST \
 http://localhost:8000/balance
 ```
 </br>
-```shell
+```
 curl --header "Content-Type: application/x-www-form-urlencoded" \
 --data "id=someuser&currency=USD" \
 --request POST \
 http://localhost:8000/balance
 ```
 </br>
-```shell
+```
 curl --header "Content-Type: application/json" \
 --data '{"id": "someuser"}' \
 --request POST \
 http://localhost:8000/balance
 ```
 </br>
-```shell
+```
 curl --header "Content-Type: application/json" \
 --data '{"id": "someuser", "currency": "USD"}' \
 --request POST \
@@ -74,14 +74,14 @@ http://localhost:8000/balance
 - /increase
 ```curl 'http://localhost:8000/increase?id=someuser&money=100'```
 </br>
-```shell
+```
 curl --header "Content-Type: application/x-www-form-urlencoded" \
 --data "id=someuser&money=100" \
 --request POST \
 http://localhost:8000/increase
 ```
 </br>
-```shell
+```
 curl --header "Content-Type: application/json" \
 --data '{"id": "someuser", "money": "100"}' \
 --request POST \
@@ -91,14 +91,14 @@ http://localhost:8000/increase
 - /decrease
 ```curl 'http://localhost:8000/decrease?id=someuser&money=100'```
 </br>
-```shell
+```
 curl --header "Content-Type: application/x-www-form-urlencoded" \
 --data "id=someuser&money=100" \
 --request POST \
 http://localhost:8000/decrease
 ```
 </br>
-```shell
+```
 curl --header "Content-Type: application/json" \
 --data '{"id": "someuser", "money": "100"}' \
 --request POST \
@@ -108,14 +108,14 @@ http://localhost:8000/decrease
 - /remittance
 ```curl 'http://localhost:8000/remittance?from=someuser&to=someuser2&money=100'```
 </br>
-```shell
+```
 curl --header "Content-Type: application/x-www-form-urlencoded" \
 --data "from=someuser&to=someuser2&money=100" \
 --request POST \
 http://localhost:8000/remittance
 ```
 </br>
-```shell
+```
 curl --header "Content-Type: application/json" \
 --data '{"from": "someuser", "to": "someuser2", "money": "100"}' \
 --request POST \
