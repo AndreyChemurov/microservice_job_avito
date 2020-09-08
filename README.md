@@ -43,10 +43,12 @@ cd microservice_job_avito/
 ```curl http://localhost:8000/balance?id=someuser``` </br>
 ```curl 'http://localhost:8000/balance?id=someuser&currency=USD'```
 </br>
-```curl --header "Content-Type: application/x-www-form-urlencoded" \
+```shell
+curl --header "Content-Type: application/x-www-form-urlencoded" \
 --data "id=someuser" \
 --request POST \
-http://localhost:8000/balance``` </br>
+http://localhost:8000/balance
+``` </br>
 </br>
 ```curl --header "Content-Type: application/x-www-form-urlencoded" \```
 ```--data "id=someuser&currency=USD" \```
