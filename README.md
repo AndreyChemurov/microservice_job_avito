@@ -30,23 +30,23 @@ cd microservice_job_avito/
 ## Примеры запросов/ответов
 
 ### Через Postman
-- /balance
+- /balance </br>
 
-- /increase
+- /increase </br>
 
-- /decrease
+- /decrease </br>
 
-- /remittance
+- /remittance </br>
 
 ### Через curl
-- /balance
-```curl http://localhost:8000/balance?id=someuser```
+- /balance </br>
+```curl http://localhost:8000/balance?id=someuser``` </br>
 ```curl 'http://localhost:8000/balance?id=someuser&currency=USD'```
 </br>
-```curl --header "Content-Type: application/x-www-form-urlencoded" \```
-```--data "id=someuser" \```
-```--request POST \```
-```http://localhost:8000/balance```
+```curl --header "Content-Type: application/x-www-form-urlencoded" \
+--data "id=someuser" \
+--request POST \
+http://localhost:8000/balance``` </br>
 </br>
 ```curl --header "Content-Type: application/x-www-form-urlencoded" \```
 ```--data "id=someuser&currency=USD" \```
