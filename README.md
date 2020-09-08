@@ -30,48 +30,86 @@ cd microservice_job_avito/
 ## Примеры запросов/ответов
 
 ### Через Postman
-```/balance```
+- /balance
 
-```/increase```
+- /increase
 
-```/decrease```
+- /decrease
 
-```/remittance```
+- /remittance
 
 ### Через curl
-```/balance```
-- curl http://localhost:8000/balance?id=someuser
-- curl 'http://localhost:8000/balance?id=someuser&currency=USD'
-
-- curl --header "Content-Type: application/x-www-form-urlencoded" --data "id=someuser" --request POST http://localhost:8000/balance
-- curl --header "Content-Type: application/x-www-form-urlencoded" --data "id=someuser&currency=USD" --request POST http://localhost:8000/balance
-
-- curl --header "Content-Type: application/json" --data '{"id": "someuser"}' --request POST http://localhost:8000/balance
-- curl --header "Content-Type: application/json" --data '{"id": "someuser", "currency": "USD"}' --request POST http://localhost:8000/balance
-
-```/increase```
-- curl 'http://localhost:8000/increase?id=someuser&money=100'
-- curl --header "Content-Type: application/x-www-form-urlencoded" --data "id=someuser&money=100" --request POST http://localhost:8000/increase
-- curl --header "Content-Type: application/json" --data '{"id": "someuser", "money": "100"}' --request POST http://localhost:8000/increase
-
-```/decrease```
-- curl 'http://localhost:8000/decrease?id=someuser&money=100'
-- curl --header "Content-Type: application/x-www-form-urlencoded" --data "id=someuser&money=100" --request POST http://localhost:8000/decrease
-- curl --header "Content-Type: application/json" --data '{"id": "someuser", "money": "100"}' --request POST http://localhost:8000/decrease
-
-```/remittance```
-- curl 'http://localhost:8000/remittance?from=someuser&to=someuser2&money=100'
-- curl --header "Content-Type: application/x-www-form-urlencoded" --data "from=someuser&to=someuser2&money=100" --request POST http://localhost:8000/remittance
-- curl --header "Content-Type: application/json" --data '{"from": "someuser", "to": "someuser2", "money": "100"}' --request POST http://localhost:8000/remittance
-
+- /balance
+```curl http://localhost:8000/balance?id=someuser```
+```curl 'http://localhost:8000/balance?id=someuser&currency=USD'```
+</br>
+```curl --header "Content-Type: application/x-www-form-urlencoded" \```
+```--data "id=someuser" \```
+```--request POST \```
+```http://localhost:8000/balance```
+</br>
+```curl --header "Content-Type: application/x-www-form-urlencoded" \```
+```--data "id=someuser&currency=USD" \```
+```--request POST \```
+```http://localhost:8000/balance```
+</br>
+```curl --header "Content-Type: application/json" \```
+```--data '{"id": "someuser"}' \```
+```--request POST \```
+```http://localhost:8000/balance```
+</br>
+```curl --header "Content-Type: application/json" \```
+```--data '{"id": "someuser", "currency": "USD"}' \```
+```--request POST \```
+```http://localhost:8000/balance```
+</br>
+- /increase
+```curl 'http://localhost:8000/increase?id=someuser&money=100'```
+</br>
+```curl --header "Content-Type: application/x-www-form-urlencoded" \```
+```--data "id=someuser&money=100" \```
+```--request POST \```
+```http://localhost:8000/increase```
+</br>
+```curl --header "Content-Type: application/json" \```
+```--data '{"id": "someuser", "money": "100"}' \```
+```--request POST \```
+```http://localhost:8000/increase```
+</br>
+- /decrease
+```curl 'http://localhost:8000/decrease?id=someuser&money=100'```
+</br>
+```curl --header "Content-Type: application/x-www-form-urlencoded" \```
+```--data "id=someuser&money=100" \```
+```--request POST \```
+```http://localhost:8000/decrease```
+</br>
+```curl --header "Content-Type: application/json" \```
+```--data '{"id": "someuser", "money": "100"}' \```
+```--request POST \```
+```http://localhost:8000/decrease```
+</br>
+- /remittance
+```curl 'http://localhost:8000/remittance?from=someuser&to=someuser2&money=100'```
+</br>
+```curl --header "Content-Type: application/x-www-form-urlencoded" \```
+```--data "from=someuser&to=someuser2&money=100" \```
+```--request POST \```
+```http://localhost:8000/remittance```
+</br>
+```curl --header "Content-Type: application/json" \```
+```--data '{"from": "someuser", "to": "someuser2", "money": "100"}' \```
+```--request POST \```
+```http://localhost:8000/remittance```
+</br>
 ### Через браузер
-```/balance```
+- /balance
 
-```/increase```
+- /increase
 
-```/decrease```
+- /decrease
 
-```/remittance```
+- /remittance
 
 ## Запуск тестов
 ```
