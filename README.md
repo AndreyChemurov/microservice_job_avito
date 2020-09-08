@@ -39,10 +39,13 @@ cd microservice_job_avito/
 - /remittance </br>
 
 ### Через curl
-- /balance
+- /balance </br>
 ```curl http://localhost:8000/balance?id=someuser``` </br>
 ```curl 'http://localhost:8000/balance?id=someuser&currency=USD'``` </br>
-```curl --header "Content-Type: application/x-www-form-urlencoded" --data "id=someuser" --request POST http://localhost:8000/balance``` </br>
+```curl --header "Content-Type: application/x-www-form-urlencoded" \ 
+--data "id=someuser" \
+--request POST \
+http://localhost:8000/balance``` </br>
 ```curl --header "Content-Type: application/x-www-form-urlencoded" --data "id=someuser&currency=USD" --request POST http://localhost:8000/balance``` </br>
 ```curl --header "Content-Type: application/json" --data '{"id": "someuser"}' --request POST http://localhost:8000/balance``` </br>
 ```curl --header "Content-Type: application/json" --data '{"id": "someuser", "currency": "USD"}' --request POST http://localhost:8000/balance``` </br>
