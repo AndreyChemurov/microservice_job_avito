@@ -49,55 +49,70 @@ curl --header "Content-Type: application/x-www-form-urlencoded" \
 http://localhost:8000/balance
 ``` 
 </br>
-```curl --header "Content-Type: application/x-www-form-urlencoded" --data "id=someuser&currency=USD" --request POST http://localhost:8000/balance``` </br>
-```curl --header "Content-Type: application/json" --data '{"id": "someuser"}' --request POST http://localhost:8000/balance``` </br>
-```curl --header "Content-Type: application/json" --data '{"id": "someuser", "currency": "USD"}' --request POST http://localhost:8000/balance``` </br>
+```
+curl --header "Content-Type: application/x-www-form-urlencoded" \
+  --data "id=someuser&currency=USD" \
+  --request POST \
+  http://localhost:8000/balance
+ ```
+ </br>
+```
+curl --header "Content-Type: application/json" \
+  --data '{"id": "someuser"}' \
+  --request POST \
+  http://localhost:8000/balance
+```
 </br>
-- /increase
-```curl 'http://localhost:8000/increase?id=someuser&money=100'```
-</br> **2**
-```bash
+```
+curl --header "Content-Type: application/json" \
+  --data '{"id": "someuser", "currency": "USD"}' \
+  --request POST \
+  http://localhost:8000/balance
+```
+</br>
+- /increase </br>
+```curl 'http://localhost:8000/increase?id=someuser&money=100'``` </br>
+```
 curl --header "Content-Type: application/x-www-form-urlencoded" \
   --data "id=someuser&money=100" \
   --request POST \
   http://localhost:8000/increase
 ```
-</br> **3**
-```bash
+</br>
+```
 curl --header "Content-Type: application/json" \
   --data '{"id": "someuser", "money": "100"}' \
   --request POST \
   http://localhost:8000/increase
 ```
 </br>
-- /decrease </br> **1**
-```curl 'http://localhost:8000/decrease?id=someuser&money=100'```
-</br> **2**
-```bash
+- /decrease </br>
+```curl 'http://localhost:8000/decrease?id=someuser&money=100'``` </br>
+```
 curl --header "Content-Type: application/x-www-form-urlencoded" \
   --data "id=someuser&money=100" \
   --request POST \
   http://localhost:8000/decrease
 ```
-</br> **3**
-```bash
+</br>
+```
 curl --header "Content-Type: application/json" \
   --data '{"id": "someuser", "money": "100"}' \
   --request POST \
   http://localhost:8000/decrease
 ```
-</br> **4**
-- /remittance </br> **1**
+</br>
+- /remittance </br>
 ```curl 'http://localhost:8000/remittance?from=someuser&to=someuser2&money=100'```
-</br> **2**
-```bash
+</br>
+```
 curl --header "Content-Type: application/x-www-form-urlencoded" \
   --data "from=someuser&to=someuser2&money=100" \
   --request POST \
   http://localhost:8000/remittance
 ```
-</br> **3**
-```bash
+</br>
+```
 curl --header "Content-Type: application/json" \
   --data '{"from": "someuser", "to": "someuser2", "money": "100"}' \
   --request POST \
