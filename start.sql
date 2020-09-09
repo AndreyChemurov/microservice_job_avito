@@ -33,3 +33,9 @@ INSERT INTO balance_job VALUES (DEFAULT, $1, 0)
 
 --name: check-user-exists
 SELECT user_id FROM user_job WHERE user_id = $1
+
+--name: drop-balance
+DELETE FROM balalce_job WHERE user_id = $1
+
+--name: drop-user
+DELETE FROM user_job WHERE user_id = $1

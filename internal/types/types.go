@@ -17,7 +17,8 @@ type Remittance struct {
 
 // UserIDBalance ...
 type UserIDBalance struct {
-	ID string `json:"id"`
+	ID       string `json:"id"`
+	Currency string `json:"currency"`
 }
 
 // IncreaseDecrease ...

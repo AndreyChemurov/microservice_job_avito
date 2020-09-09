@@ -11,6 +11,7 @@ import (
 	"net/http"
 
 	"github.com/gchaincl/dotsql"
+	"github.com/lib/pq"
 	_ "github.com/lib/pq" //
 )
 
@@ -66,9 +67,7 @@ func _getBalance(userID string, args ...interface{}) ([]byte, int, interface{}) 
 		return js, http.StatusInternalServerError, InternalServerError500rm["error"]["status_message"]
 	}
 
-	// log.Println(args[0])
-
-	if flag := args[0].(bool); flag == false || len(args) == 0 {
+	if flag := args[0].(bool); flag == false {
 		returnBalance := types.Balance{Bal: balance}
 
 		js, _ := json.Marshal(returnBalance)
@@ -225,6 +224,12 @@ func _decrease(userID string, money float64) ([]byte, int, interface{}) {
 	}
 
 	if _, err = dot.Exec(db, "remittance-from", money, userID); err != nil {
+
+		if err, _ := err.(*pq.Error); err.Code.Name() == "check_violation" {
+			js, _ := json.Marshal(DecreaseMore400rm)
+			return js, http.StatusBadRequest, DecreaseMore400rm["error"]["status_message"]
+		}
+
 		js, _ := json.Marshal(InternalServerError500rm)
 		return js, http.StatusInternalServerError, InternalServerError500rm["error"]["status_message"]
 	}
@@ -293,18 +298,18 @@ func _remittance(userIDFrom string, userIDTo string, money float64) ([]byte, int
 	}
 
 	// Проверить, что пользователь, с баланса которого нужно списать средства, имеет достаточно средств для списания
-	b, err := dot.QueryRow(db, "get-user-balance", userIDFrom)
+	// b, err := dot.QueryRow(db, "get-user-balance", userIDFrom)
 
-	var balance float64
-	err = b.Scan(&balance)
+	// var balance float64
+	// err = b.Scan(&balance)
 
-	if err != nil {
-		js, _ := json.Marshal(InternalServerError500rm)
-		return js, http.StatusInternalServerError, InternalServerError500rm["error"]["status_message"]
-	} else if balance < money {
-		js, _ := json.Marshal(DecreaseMore400rm)
-		return js, http.StatusBadRequest, InternalServerError500rm["error"]["status_message"]
-	}
+	// if err != nil {
+	// 	js, _ := json.Marshal(InternalServerError500rm)
+	// 	return js, http.StatusInternalServerError, InternalServerError500rm["error"]["status_message"]
+	// } else if balance < money {
+	// 	js, _ := json.Marshal(DecreaseMore400rm)
+	// 	return js, http.StatusBadRequest, DecreaseMore400rm["error"]["status_message"]
+	// }
 
 	if _, err = dot.Exec(db, "remittance-from", money, userIDFrom); err != nil {
 		js, _ := json.Marshal(InternalServerError500rm)

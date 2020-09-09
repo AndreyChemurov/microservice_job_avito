@@ -35,18 +35,6 @@ func prepareDatabase() error {
 		panic(err)
 	}
 
-	// _, err = dot.Exec(db, "drop-balance-table")
-
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// _, err = dot.Exec(db, "drop-user-table")
-
-	// if err != nil {
-	// 	panic(err)
-	// }
-
 	_, err = dot.Exec(db, "create-user-table")
 
 	if err != nil {

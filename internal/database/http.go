@@ -28,6 +28,7 @@ func PathHandler() {
 // Возвращаемые значения:
 //		balance: текущий баланс пользователя;
 func getBalance(w http.ResponseWriter, r *http.Request) {
+	// log.Println(r)
 	var (
 		contentType string = r.Header.Get("Content-Type")
 
@@ -76,6 +77,11 @@ func getBalance(w http.ResponseWriter, r *http.Request) {
 	if contentType == "application/x-www-form-urlencoded" {
 		r.ParseForm()
 		userIDFromRequest = r.Form.Get("id")
+		currencyFromRequest = r.Form.Get("currency")
+
+		if currencyFromRequest != "" {
+			currencyFlag = true
+		}
 
 	} else if contentType == "application/json" {
 		decoder := json.NewDecoder(r.Body)
@@ -92,6 +98,11 @@ func getBalance(w http.ResponseWriter, r *http.Request) {
 		}
 
 		userIDFromRequest = reqData.ID
+		currencyFromRequest = reqData.Currency
+
+		if currencyFromRequest != "" {
+			currencyFlag = true
+		}
 
 	} else if contentType == "" {
 		userIDFromRequest = r.URL.Query().Get("id")
@@ -233,7 +244,7 @@ func increaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 	moneyFromRequest = strings.Replace(moneyFromRequest, ",", ".", -1)
 	money, err := strconv.ParseFloat(moneyFromRequest, 64)
 
-	if err != nil {
+	if err != nil || money < 0 {
 		log.Println(r.Method, r.URL.Path, http.StatusBadRequest, WrongParams400rm["error"]["status_message"])
 
 		js, _ := json.Marshal(WrongParams400rm)
@@ -364,7 +375,7 @@ func remittance(w http.ResponseWriter, r *http.Request) {
 	moneyFromRequest = strings.Replace(moneyFromRequest, ",", ".", -1)
 	money, err := strconv.ParseFloat(moneyFromRequest, 64)
 
-	if err != nil {
+	if err != nil || money < 0 {
 		log.Println(r.Method, r.URL.Path, http.StatusBadRequest, WrongParams400rm["error"]["status_message"])
 
 		js, _ := json.Marshal(WrongParams400rm)
