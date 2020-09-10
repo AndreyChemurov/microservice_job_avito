@@ -8,7 +8,8 @@ cd microservice_job_avito/
 ```
 
 ## Информация
-Приложение работает на порту ```8000```.
+Приложение работает на порту ```8000```. </br>
+Реализовано доп. задание №1.
 
 **Запросы** </br>
 
@@ -30,14 +31,10 @@ cd microservice_job_avito/
 ## Примеры запросов/ответов
 
 ### Через Postman
-- /balance </br>
-
-- /increase </br>
-
-- /decrease </br>
-
-- /remittance </br>
-
+![Screenshot_20200910_144742](https://user-images.githubusercontent.com/58785926/92725402-c845e080-f374-11ea-859d-dc68d0dcfb5c.png) </br>
+![Screenshot_20200910_144803](https://user-images.githubusercontent.com/58785926/92725415-cda32b00-f374-11ea-8865-2d00bf2a2612.png) </br>
+![Screenshot_20200910_144825](https://user-images.githubusercontent.com/58785926/92725426-d0058500-f374-11ea-86e2-2c24dcf163b1.png) </br>
+![Screenshot_20200910_144847](https://user-images.githubusercontent.com/58785926/92725431-d1cf4880-f374-11ea-9102-e90cdb4eb2fa.png) </br>
 ### Через curl
 - /balance (текущий баланс) </br>
 ```curl http://localhost:8000/balance?id=someuser``` </br> </br>
@@ -58,14 +55,11 @@ cd microservice_job_avito/
 ```curl 'http://localhost:8000/remittance?from=someuser&to=someuser2&money=100'``` </br> </br>
 ```curl --header "Content-Type: application/x-www-form-urlencoded" --data "from=someuser&to=someuser2&money=100" --request POST http://localhost:8000/remittance``` </br> </br>
 ```curl --header "Content-Type: application/json" --data '{"from": "someuser", "to": "someuser2", "money": "100"}' --request POST http://localhost:8000/remittance``` </br>
-### Через браузер
-- /balance
 
-- /increase
-
-- /decrease
-
-- /remittance
+![Screenshot_20200910_142645](https://user-images.githubusercontent.com/58785926/92724450-4f925480-f373-11ea-9478-6b5f9bb248d3.png)
+![Screenshot_20200910_142743](https://user-images.githubusercontent.com/58785926/92724477-5751f900-f373-11ea-9d2d-1f5aeacd6971.png)
+![Screenshot_20200910_142813](https://user-images.githubusercontent.com/58785926/92724486-59b45300-f373-11ea-9e14-5c329e2cbf66.png)
+![Screenshot_20200910_142844](https://user-images.githubusercontent.com/58785926/92724491-5b7e1680-f373-11ea-9216-bcccb1b1bfd0.png)
 
 ## Запуск тестов
 ```
