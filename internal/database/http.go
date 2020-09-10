@@ -28,7 +28,6 @@ func PathHandler() {
 // Возвращаемые значения:
 //		balance: текущий баланс пользователя;
 func getBalance(w http.ResponseWriter, r *http.Request) {
-	// log.Println(r)
 	var (
 		contentType string = r.Header.Get("Content-Type")
 
