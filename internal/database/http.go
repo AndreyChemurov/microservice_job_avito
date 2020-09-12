@@ -34,33 +34,38 @@ func GetBalance(w http.ResponseWriter, r *http.Request) {
 		userIDFromRequest   string
 		currencyFromRequest string
 		currencyFlag        bool = false
-		js                  []byte
+		responseJSON        []byte
 
-		balance []byte
-		status  int
+		balance *types.Balance
 	)
 
 	if r.Method != "POST" && r.Method != "GET" {
-		js, _ = json.Marshal(MethodNotAllowed405rm)
+		responseJSON = ErrorType(405, "Method not allowed: use GET or POST")
+
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write(js)
+		w.Write(responseJSON)
+
 		return
 	}
 
 	if contentType != "" {
 		// Метод POST, Content-Type, но URL-параметры вместо тела
 		if _, exist := r.URL.Query()["id"]; exist {
-			js, _ = json.Marshal(URLParams400rm)
+			responseJSON = ErrorType(400, "Need body parameters, not URL")
+
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write(js)
+			w.Write(responseJSON)
+
 			return
 		}
 
 		// Метод GET и пустое тело
 		if r.Method == "GET" && userIDFromRequest == "" {
-			js, _ = json.Marshal(ContentTypeGETMethod405rm)
+			responseJSON = ErrorType(405, "Method not allowed: use POST-method and body parameters with Content-Type")
+
 			w.WriteHeader(http.StatusMethodNotAllowed)
-			w.Write(js)
+			w.Write(responseJSON)
+
 			return
 		}
 	}
@@ -68,6 +73,7 @@ func GetBalance(w http.ResponseWriter, r *http.Request) {
 	// Парсинг параметров
 	if contentType == "application/x-www-form-urlencoded" {
 		r.ParseForm()
+
 		userIDFromRequest = r.Form.Get("id")
 		currencyFromRequest = r.Form.Get("currency")
 
@@ -81,9 +87,11 @@ func GetBalance(w http.ResponseWriter, r *http.Request) {
 		var reqData types.UserIDBalance
 
 		if err := decoder.Decode(&reqData); err != nil {
-			js, _ = json.Marshal(BadJSON400rm)
+			responseJSON = ErrorType(400, "Invalid JSON format")
+
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write(js)
+			w.Write(responseJSON)
+
 			return
 		}
 
@@ -103,24 +111,40 @@ func GetBalance(w http.ResponseWriter, r *http.Request) {
 		}
 
 	} else {
-		js, _ = json.Marshal(UnknownContentType400rm)
+		responseJSON = ErrorType(400, "Unknown Content-Type")
+
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(js)
+		w.Write(responseJSON)
+
 		return
 	}
 
 	// Если параметры введены неверно
 	if userIDFromRequest == "" {
-		js, _ = json.Marshal(WrongParams400rm)
+		responseJSON = ErrorType(400, "Wrong parameter(s)")
+
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(js)
+		w.Write(responseJSON)
+
 		return
 	}
 
-	balance, status = _getBalance(userIDFromRequest, currencyFlag, currencyFromRequest)
+	balance, err := getBalance(userIDFromRequest, currencyFlag, currencyFromRequest)
 
-	w.WriteHeader(status)
-	w.Write(balance)
+	if err != nil {
+		responseJSON = ErrorType(balance.Status, err.Error())
+
+		w.WriteHeader(balance.Status)
+		w.Write(responseJSON)
+
+		return
+	}
+
+	responseJSON, _ = json.Marshal(balance)
+
+	w.WriteHeader(balance.Status)
+	w.Write(responseJSON)
+
 	return
 }
 
@@ -136,16 +160,17 @@ func IncreaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 
 		userIDFromRequest string
 		moneyFromRequest  string
-		js                []byte
+		responseJSON      []byte
 
-		balance []byte
-		status  int
+		balance *types.Balance
 	)
 
 	if r.Method != "POST" && r.Method != "GET" {
-		js, _ = json.Marshal(MethodNotAllowed405rm)
+		responseJSON = ErrorType(405, "Method not allowed: use GET or POST")
+
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write(js)
+		w.Write(responseJSON)
+
 		return
 	}
 
@@ -155,18 +180,22 @@ func IncreaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 		// Метод POST, Content-Type, но URL-параметры вместо тела
 		for _, param := range params {
 			if _, exist := r.URL.Query()[param]; exist {
-				js, _ = json.Marshal(URLParams400rm)
+				responseJSON = ErrorType(400, "Need body parameters, not URL")
+
 				w.WriteHeader(http.StatusBadRequest)
-				w.Write(js)
+				w.Write(responseJSON)
+
 				return
 			}
 		}
 
 		// Метод GET и пустое тело
 		if r.Method == "GET" && (userIDFromRequest == "" || moneyFromRequest == "") {
-			js, _ = json.Marshal(ContentTypeGETMethod405rm)
+			responseJSON = ErrorType(405, "Method not allowed: use POST-method and body parameters with Content-Type")
+
 			w.WriteHeader(http.StatusMethodNotAllowed)
-			w.Write(js)
+			w.Write(responseJSON)
+
 			return
 		}
 	}
@@ -184,9 +213,11 @@ func IncreaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 		var reqData types.IncreaseDecrease
 
 		if err := decoder.Decode(&reqData); err != nil {
-			js, _ = json.Marshal(BadJSON400rm)
+			responseJSON = ErrorType(400, "Invalid JSON format")
+
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write(js)
+			w.Write(responseJSON)
+
 			return
 		}
 
@@ -197,17 +228,21 @@ func IncreaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 		userIDFromRequest = r.URL.Query().Get("id")
 		moneyFromRequest = r.URL.Query().Get("money")
 	} else {
-		js, _ = json.Marshal(UnknownContentType400rm)
+		responseJSON = ErrorType(400, "Unknown Content-Type")
+
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(js)
+		w.Write(responseJSON)
+
 		return
 	}
 
 	// Если параметры введены неверно
 	if userIDFromRequest == "" || moneyFromRequest == "" {
-		js, _ := json.Marshal(WrongParams400rm)
+		responseJSON = ErrorType(400, "Wrong parameter(s)")
+
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(js)
+		w.Write(responseJSON)
+
 		return
 	}
 
@@ -216,20 +251,26 @@ func IncreaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 	money, err := strconv.ParseFloat(moneyFromRequest, 64)
 
 	if err != nil || money < 0 {
-		js, _ := json.Marshal(WrongParams400rm)
+		responseJSON = ErrorType(400, "Wrong parameter(s)")
+
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(js)
+		w.Write(responseJSON)
+
 		return
 	}
 
 	if r.URL.Path == "/increase" {
-		balance, status = _increase(userIDFromRequest, math.Round(money*100)/100)
+		balance, err = increase(userIDFromRequest, math.Round(money*100)/100)
+
 	} else if r.URL.Path == "/decrease" {
-		balance, status = _decrease(userIDFromRequest, math.Round(money*100)/100)
+		balance, err = decrease(userIDFromRequest, math.Round(money*100)/100)
 	}
 
-	w.WriteHeader(status)
-	w.Write(balance)
+	responseJSON, _ = json.Marshal(balance)
+
+	w.WriteHeader(balance.Status)
+	w.Write(responseJSON)
+
 	return
 }
 
@@ -247,16 +288,17 @@ func Remittance(w http.ResponseWriter, r *http.Request) {
 		userFromIDRequest string
 		userToIDRequest   string
 		moneyFromRequest  string
-		js                []byte
+		responseJSON      []byte
 
-		balance []byte
-		status  int
+		balance *types.Remittance
 	)
 
 	if r.Method != "POST" && r.Method != "GET" {
-		js, _ = json.Marshal(MethodNotAllowed405rm)
+		responseJSON = ErrorType(405, "Method not allowed: use GET or POST")
+
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write(js)
+		w.Write(responseJSON)
+
 		return
 	}
 
@@ -266,18 +308,22 @@ func Remittance(w http.ResponseWriter, r *http.Request) {
 		// Метод POST, Content-Type, но URL-параметры вместо тела
 		for _, param := range params {
 			if _, exist := r.URL.Query()[param]; exist {
-				js, _ = json.Marshal(URLParams400rm)
+				responseJSON = ErrorType(400, "Need body parameters, not URL")
+
 				w.WriteHeader(http.StatusBadRequest)
-				w.Write(js)
+				w.Write(responseJSON)
+
 				return
 			}
 		}
 
 		// Метод GET и пустое тело
 		if r.Method == "GET" && (userFromIDRequest == "" || userToIDRequest == "" || moneyFromRequest == "") {
-			js, _ = json.Marshal(ContentTypeGETMethod405rm)
+			responseJSON = ErrorType(405, "Method not allowed: use POST-method and body parameters with Content-Type")
+
 			w.WriteHeader(http.StatusMethodNotAllowed)
-			w.Write(js)
+			w.Write(responseJSON)
+
 			return
 		}
 	}
@@ -296,9 +342,11 @@ func Remittance(w http.ResponseWriter, r *http.Request) {
 		var reqData types.RemittanceRequest
 
 		if err := decoder.Decode(&reqData); err != nil {
-			js, _ = json.Marshal(BadJSON400rm)
+			responseJSON = ErrorType(400, "Invalid JSON format")
+
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write(js)
+			w.Write(responseJSON)
+
 			return
 		}
 
@@ -311,17 +359,21 @@ func Remittance(w http.ResponseWriter, r *http.Request) {
 		userToIDRequest = r.URL.Query().Get("to")
 		moneyFromRequest = r.URL.Query().Get("money")
 	} else {
-		js, _ = json.Marshal(UnknownContentType400rm)
+		responseJSON = ErrorType(400, "Unknown Content-Type")
+
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(js)
+		w.Write(responseJSON)
+
 		return
 	}
 
 	// Если параметры введены неверно
 	if userFromIDRequest == "" || userToIDRequest == "" || moneyFromRequest == "" {
-		js, _ := json.Marshal(WrongParams400rm)
+		responseJSON = ErrorType(400, "Wrong parameter(s)")
+
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(js)
+		w.Write(responseJSON)
+
 		return
 	}
 
@@ -330,23 +382,30 @@ func Remittance(w http.ResponseWriter, r *http.Request) {
 	money, err := strconv.ParseFloat(moneyFromRequest, 64)
 
 	if err != nil || money < 0 {
-		js, _ := json.Marshal(WrongParams400rm)
+		responseJSON = ErrorType(400, "Wrong parameter(s)")
+
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(js)
+		w.Write(responseJSON)
+
 		return
 	}
 
-	balance, status = _remittance(userFromIDRequest, userToIDRequest, math.Round(money*100)/100)
+	balance, err = remittance(userFromIDRequest, userToIDRequest, math.Round(money*100)/100)
 
-	w.WriteHeader(status)
-	w.Write(balance)
+	responseJSON, _ = json.Marshal(balance)
+
+	w.WriteHeader(balance.Status)
+	w.Write(responseJSON)
+
 	return
 }
 
 // NotFound - Метод, который вызывается, если указанный путь не найден.
 func NotFound(w http.ResponseWriter, r *http.Request) {
-	js, _ := json.Marshal(NotFound404rm)
+	responseJSON := ErrorType(404, "Not found")
+
 	w.WriteHeader(http.StatusNotFound)
-	w.Write(js)
+	w.Write(responseJSON)
+
 	return
 }

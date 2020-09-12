@@ -24,7 +24,7 @@ func prepareDatabase() error {
 	db, err := sql.Open("postgres", postgresInfo)
 
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	defer db.Close()
@@ -32,19 +32,19 @@ func prepareDatabase() error {
 	dot, err := dotsql.LoadFromFile("start.sql")
 
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	_, err = dot.Exec(db, "create-user-table")
 
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	_, err = dot.Exec(db, "create-balance-table")
 
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	return nil
