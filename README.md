@@ -62,8 +62,9 @@ cd microservice_job_avito/
 ![Screenshot_20200910_142844](https://user-images.githubusercontent.com/58785926/92724491-5b7e1680-f373-11ea-9216-bcccb1b1bfd0.png)
 
 ## Запуск тестов
+Из-под директории **microservice_job_avito/**
 ```
-pass
+[sudo] docker-compose run --rm web go test [-v [-cover]] && [sudo] docker-compose stop db
 ```
 
 ## Результаты тестов
