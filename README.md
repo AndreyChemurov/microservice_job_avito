@@ -62,13 +62,22 @@ cd microservice_job_avito/
 ![Screenshot_20200910_142844](https://user-images.githubusercontent.com/58785926/92724491-5b7e1680-f373-11ea-9216-bcccb1b1bfd0.png)
 
 ## Запуск тестов
-Из-под директории **microservice_job_avito/**
+Из-под директории **microservice_job_avito/** </br>
+Тесты для main пакета: </br>
 ```
-[sudo] docker-compose run --rm web go test [-v [-cover]] && [sudo] docker-compose stop db
+[sudo] docker-compose run --rm web go test . [-v [-cover]] && [sudo] docker-compose stop db
+```
+Тесты для database пакета: </br>
+```
+[sudo] docker-compose run --rm web go test ./internal/database/ [-v [-cover]] && [sudo] docker-compose stop db
 ```
 
 ## Результаты тестов
-pass
+Покрытие main - 55.6% </br>
+Покрытие database - 79.2% </br>
+</br>
+![Screenshot_20200913_210845](https://user-images.githubusercontent.com/58785926/93025294-6c45bb00-f605-11ea-9c84-bb0e1e488911.png)
+![Screenshot_20200913_210910](https://user-images.githubusercontent.com/58785926/93025295-6e0f7e80-f605-11ea-9569-116d21c39876.png)
 
 ## Проблемы и решения
 ### Проблема №1
