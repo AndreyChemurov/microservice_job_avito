@@ -268,6 +268,15 @@ func IncreaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 		balance, status, err = decrease(userIDFromRequest, math.Round(money*100)/100)
 	}
 
+	if err != nil {
+		responseJSON = ErrorType(status, err.Error())
+
+		w.WriteHeader(status)
+		w.Write(responseJSON)
+
+		return
+	}
+
 	responseJSON, _ = json.Marshal(balance)
 
 	w.WriteHeader(status)
@@ -394,6 +403,15 @@ func Remittance(w http.ResponseWriter, r *http.Request) {
 	}
 
 	balance, status, err = remittance(userFromIDRequest, userToIDRequest, math.Round(money*100)/100)
+
+	if err != nil {
+		responseJSON = ErrorType(status, err.Error())
+
+		w.WriteHeader(status)
+		w.Write(responseJSON)
+
+		return
+	}
 
 	responseJSON, _ = json.Marshal(balance)
 
