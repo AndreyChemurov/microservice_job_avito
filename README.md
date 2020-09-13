@@ -76,7 +76,7 @@ coverhttp.html - Визуальное покрытие database пакета.
 
 ## Результаты тестов
 Покрытие main - 55.6% </br>
-Покрытие database - 79.2% </br>
+Покрытие database - 79.8% </br>
 </br>
 ![Screenshot_20200913_210845](https://user-images.githubusercontent.com/58785926/93025294-6c45bb00-f605-11ea-9c84-bb0e1e488911.png)
 ![Screenshot_20200913_210910](https://user-images.githubusercontent.com/58785926/93025295-6e0f7e80-f605-11ea-9569-116d21c39876.png)
