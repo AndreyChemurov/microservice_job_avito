@@ -37,6 +37,7 @@ func GetBalance(w http.ResponseWriter, r *http.Request) {
 		responseJSON        []byte
 
 		balance *types.Balance
+		status  int
 	)
 
 	if r.Method != "POST" && r.Method != "GET" {
@@ -129,12 +130,12 @@ func GetBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	balance, err := getBalance(userIDFromRequest, currencyFlag, currencyFromRequest)
+	balance, status, err := getBalance(userIDFromRequest, currencyFlag, currencyFromRequest)
 
 	if err != nil {
-		responseJSON = ErrorType(balance.Status, err.Error())
+		responseJSON = ErrorType(status, err.Error())
 
-		w.WriteHeader(balance.Status)
+		w.WriteHeader(status)
 		w.Write(responseJSON)
 
 		return
@@ -142,7 +143,7 @@ func GetBalance(w http.ResponseWriter, r *http.Request) {
 
 	responseJSON, _ = json.Marshal(balance)
 
-	w.WriteHeader(balance.Status)
+	w.WriteHeader(200)
 	w.Write(responseJSON)
 
 	return
@@ -163,6 +164,7 @@ func IncreaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 		responseJSON      []byte
 
 		balance *types.Balance
+		status  int
 	)
 
 	if r.Method != "POST" && r.Method != "GET" {
@@ -260,15 +262,15 @@ func IncreaseAndDecrease(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.URL.Path == "/increase" {
-		balance, err = increase(userIDFromRequest, math.Round(money*100)/100)
+		balance, status, err = increase(userIDFromRequest, math.Round(money*100)/100)
 
 	} else if r.URL.Path == "/decrease" {
-		balance, err = decrease(userIDFromRequest, math.Round(money*100)/100)
+		balance, status, err = decrease(userIDFromRequest, math.Round(money*100)/100)
 	}
 
 	responseJSON, _ = json.Marshal(balance)
 
-	w.WriteHeader(balance.Status)
+	w.WriteHeader(status)
 	w.Write(responseJSON)
 
 	return
@@ -291,6 +293,7 @@ func Remittance(w http.ResponseWriter, r *http.Request) {
 		responseJSON      []byte
 
 		balance *types.Remittance
+		status  int
 	)
 
 	if r.Method != "POST" && r.Method != "GET" {
@@ -390,11 +393,11 @@ func Remittance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	balance, err = remittance(userFromIDRequest, userToIDRequest, math.Round(money*100)/100)
+	balance, status, err = remittance(userFromIDRequest, userToIDRequest, math.Round(money*100)/100)
 
 	responseJSON, _ = json.Marshal(balance)
 
-	w.WriteHeader(balance.Status)
+	w.WriteHeader(status)
 	w.Write(responseJSON)
 
 	return

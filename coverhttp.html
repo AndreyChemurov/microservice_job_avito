@@ -1,0 +1,907 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">microservice_job_avito/internal/database/business.go (62.3%)</option>
+				
+				<option value="file1">microservice_job_avito/internal/database/error_handling.go (100.0%)</option>
+				
+				<option value="file2">microservice_job_avito/internal/database/http.go (92.6%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package database
+
+import (
+        "database/sql"
+        "errors"
+        "fmt"
+        "log"
+        "microservice_job_avito/internal/currency"
+        "microservice_job_avito/internal/types"
+
+        "github.com/gchaincl/dotsql"
+        "github.com/lib/pq"
+)
+
+const (
+        host     = "db"
+        port     = 5432
+        user     = "postgres"
+        password = "postgres"
+        dbname   = "postgres"
+)
+
+var postgresInfo = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+
+// Аргументы:
+//                userID - уникальный идентификатор пользователя
+//                flag - флаг для парсинга в другой валюте
+//                base - обозначение другой валюты
+// Возвращаемые значения:
+//                response - структура текущего баланса
+//                [status] - http статус код
+//                [error] - ошибка
+func getBalance(userID string, flag bool, base string) (*types.Balance, int, error) <span class="cov8" title="1">{
+        db, err := sql.Open("postgres", postgresInfo)
+
+        if err != nil </span><span class="cov0" title="0">{
+                response := types.Balance{}
+
+                return &amp;response, 500, errors.New("Service cannot connect to database")
+        }</span>
+
+        <span class="cov8" title="1">defer db.Close()
+
+        dot, err := dotsql.LoadFromFile("start.sql")
+
+        // Проверить, существует ли пользователь с данным id
+        userRow, err := dot.QueryRow(db, "check-user-exists", userID)
+
+        if err != nil </span><span class="cov0" title="0">{
+                response := types.Balance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+        }</span>
+
+        <span class="cov8" title="1">var userIDCheck string
+        err = userRow.Scan(&amp;userIDCheck)
+
+        if err == sql.ErrNoRows </span><span class="cov8" title="1">{
+                response := types.Balance{}
+
+                return &amp;response, 500, errors.New("User does not exist")
+
+        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov0" title="0">{
+                response := types.Balance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+        }</span>
+
+        // Если пользователь существует
+        <span class="cov8" title="1">response, _ := dot.QueryRow(db, "get-user-balance", userID)
+
+        var balance float64
+        err = response.Scan(&amp;balance)
+
+        if err != nil </span><span class="cov0" title="0">{
+                response := types.Balance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+        }</span>
+
+        <span class="cov8" title="1">if flag == false </span><span class="cov8" title="1">{
+                returnBalance := types.Balance{Balance: balance}
+
+                return &amp;returnBalance, 200, nil
+        }</span>
+
+        <span class="cov8" title="1">balance, err = currency.Currency(balance, base)
+
+        if err != nil </span><span class="cov8" title="1">{
+                response := types.Balance{}
+
+                return &amp;response, 500, err
+        }</span>
+
+        <span class="cov8" title="1">returnBalance := types.Balance{Balance: balance}
+
+        return &amp;returnBalance, 200, nil</span>
+}
+
+// Аргументы:
+//                userID - уникальный идентификатор пользователя
+//                money - количество средств для зачисления
+// Возвращаемые значения:
+//                response - структура текущего баланса после зачисления
+//                [status] - http статус код
+//                [error] - ошибка
+func increase(userID string, money float64) (*types.Balance, int, error) <span class="cov8" title="1">{
+        db, err := sql.Open("postgres", postgresInfo)
+
+        if err != nil </span><span class="cov0" title="0">{
+                response := types.Balance{}
+
+                return &amp;response, 500, errors.New("Service cannot connect to database")
+        }</span>
+
+        <span class="cov8" title="1">defer db.Close()
+
+        dot, err := dotsql.LoadFromFile("start.sql")
+
+        // Проверить, существует ли пользователь с данным id
+        userRow, err := dot.QueryRow(db, "check-user-exists", userID)
+
+        if err != nil </span><span class="cov0" title="0">{
+                response := types.Balance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+        }</span>
+
+        <span class="cov8" title="1">var userIDCheck string
+        err = userRow.Scan(&amp;userIDCheck)
+
+        if err == sql.ErrNoRows </span><span class="cov0" title="0">{
+
+                if _, err = dot.Exec(db, "create-user", userID); err != nil </span><span class="cov0" title="0">{
+                        response := types.Balance{}
+
+                        return &amp;response, 500, errors.New("Internal server error")
+                }</span>
+
+                <span class="cov0" title="0">if _, err = dot.Exec(db, "create-balance", userID); err != nil </span><span class="cov0" title="0">{
+                        response := types.Balance{}
+
+                        return &amp;response, 500, errors.New("Internal server error")
+                }</span>
+
+        } else<span class="cov8" title="1"> if err != nil </span><span class="cov0" title="0">{
+                log.Fatal(err)
+        }</span>
+
+        // Увелечить баланс
+        <span class="cov8" title="1">_, err = dot.Exec(db, "remittance-to", money, userID)
+
+        if err != nil </span><span class="cov0" title="0">{
+                response := types.Balance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+        }</span>
+
+        <span class="cov8" title="1">response, err := dot.QueryRow(db, "get-user-balance", userID)
+
+        var balance float64
+        err = response.Scan(&amp;balance)
+
+        if err != nil </span><span class="cov0" title="0">{
+                response := types.Balance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+        }</span>
+
+        <span class="cov8" title="1">returnBalance := types.Balance{Balance: balance}
+        return &amp;returnBalance, 200, nil</span>
+}
+
+// Аргументы:
+//                userID - уникальный идентификатор пользователя
+//                money - количество средств для списания
+// Возвращаемые значения:
+//                response - структура текущего баланса после списания
+//                [status] - http статус код
+//                [error] - ошибка
+func decrease(userID string, money float64) (*types.Balance, int, error) <span class="cov8" title="1">{
+        db, err := sql.Open("postgres", postgresInfo)
+
+        if err != nil </span><span class="cov0" title="0">{
+                response := types.Balance{}
+
+                return &amp;response, 500, errors.New("Service cannot connect to database")
+        }</span>
+
+        <span class="cov8" title="1">defer db.Close()
+
+        dot, err := dotsql.LoadFromFile("start.sql")
+
+        // Проверить, существует ли пользователь с данным id
+        userRow, err := dot.QueryRow(db, "check-user-exists", userID)
+
+        if err != nil </span><span class="cov0" title="0">{
+                response := types.Balance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+        }</span>
+
+        <span class="cov8" title="1">var userIDCheck string
+        err = userRow.Scan(&amp;userIDCheck)
+
+        if err == sql.ErrNoRows </span><span class="cov0" title="0">{
+                response := types.Balance{}
+
+                return &amp;response, 500, errors.New("User does not exist")
+
+        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov0" title="0">{
+                response := types.Balance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+        }</span>
+
+        // Уменьшить баланс
+        <span class="cov8" title="1">response, err := dot.QueryRow(db, "get-user-balance", userID)
+
+        var balance float64
+        err = response.Scan(&amp;balance)
+
+        if err != nil </span><span class="cov0" title="0">{
+                response := types.Balance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+
+        }</span> else<span class="cov8" title="1"> if balance &lt; money </span><span class="cov8" title="1">{ // Пользовтелеь не имеет достаточное количество средств для списания
+                response := types.Balance{}
+
+                return &amp;response, 500, errors.New("Operation not available: Debit exceeds the balance")
+        }</span>
+
+        <span class="cov8" title="1">if _, err = dot.Exec(db, "remittance-from", money, userID); err != nil </span><span class="cov0" title="0">{
+
+                if err, _ := err.(*pq.Error); err.Code.Name() == "check_violation" </span><span class="cov0" title="0">{
+                        response := types.Balance{}
+
+                        return &amp;response, 500, errors.New("Operation not available: Debit exceeds the balance")
+                }</span>
+
+                <span class="cov0" title="0">response := types.Balance{}
+
+                return &amp;response, 500, errors.New("Internal server error")</span>
+        }
+
+        <span class="cov8" title="1">response, err = dot.QueryRow(db, "get-user-balance", userID)
+        err = response.Scan(&amp;balance)
+
+        if err != nil </span><span class="cov0" title="0">{
+                response := types.Balance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+        }</span>
+
+        <span class="cov8" title="1">returnBalance := types.Balance{Balance: balance}
+        return &amp;returnBalance, 200, nil</span>
+}
+
+// Аргументы:
+//                userIDFrom - уникальный идентификатор пользователя, который переводит средства
+//                userIDTo - уникальный идентификатор пользователя, которому переводят средства
+//                money - количество средств для перевода
+// Возвращаемые значения:
+//                response - структура текущего баланса обоих пользователей
+//                [status] - http статус код
+//                [error] - ошибка
+func remittance(userIDFrom string, userIDTo string, money float64) (*types.Remittance, int, error) <span class="cov8" title="1">{
+        db, err := sql.Open("postgres", postgresInfo)
+
+        if err != nil </span><span class="cov0" title="0">{
+                response := types.Remittance{}
+
+                return &amp;response, 500, errors.New("Service cannot connect to database")
+        }</span>
+
+        <span class="cov8" title="1">defer db.Close()
+
+        dot, err := dotsql.LoadFromFile("start.sql")
+
+        // Проверить, существует ли пользователь, с баланса которого нужно списать средства
+        userRow, err := dot.QueryRow(db, "check-user-exists", userIDFrom)
+
+        if err != nil </span><span class="cov0" title="0">{
+                response := types.Remittance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+        }</span>
+
+        <span class="cov8" title="1">var userIDCheck string
+        err = userRow.Scan(&amp;userIDCheck)
+
+        if err == sql.ErrNoRows </span><span class="cov8" title="1">{
+                response := types.Remittance{}
+
+                return &amp;response, 500, errors.New("User does not exist")
+
+        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov0" title="0">{
+                response := types.Remittance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+        }</span>
+
+        // Проверить, существует ли пользователь, на баланс которому нужно перевести средства
+        <span class="cov8" title="1">userRow, err = dot.QueryRow(db, "check-user-exists", userIDTo)
+
+        if err != nil </span><span class="cov0" title="0">{
+                response := types.Remittance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+        }</span>
+
+        <span class="cov8" title="1">err = userRow.Scan(&amp;userIDCheck)
+
+        if err == sql.ErrNoRows </span><span class="cov8" title="1">{
+                response := types.Remittance{}
+
+                return &amp;response, 500, errors.New("User does not exist")
+
+        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov0" title="0">{
+                response := types.Remittance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+        }</span>
+
+        <span class="cov8" title="1">if _, err = dot.Exec(db, "remittance-from", money, userIDFrom); err != nil </span><span class="cov0" title="0">{
+                response := types.Remittance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+        }</span>
+
+        <span class="cov8" title="1">if _, err = dot.Exec(db, "remittance-to", money, userIDTo); err != nil </span><span class="cov0" title="0">{
+                response := types.Remittance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+        }</span>
+
+        <span class="cov8" title="1">var balanceFrom, balanceTo float64
+
+        bFrom, err := dot.QueryRow(db, "get-user-balance", userIDFrom)
+        err = bFrom.Scan(&amp;balanceFrom)
+
+        if err != nil </span><span class="cov0" title="0">{
+                response := types.Remittance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+        }</span>
+
+        <span class="cov8" title="1">bTo, err := dot.QueryRow(db, "get-user-balance", userIDTo)
+        err = bTo.Scan(&amp;balanceTo)
+
+        if err != nil </span><span class="cov0" title="0">{
+                response := types.Remittance{}
+
+                return &amp;response, 500, errors.New("Internal server error")
+        }</span>
+
+        <span class="cov8" title="1">returnBalance := types.Remittance{BalanceFrom: balanceFrom, BalanceTo: balanceTo}
+
+        return &amp;returnBalance, 200, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package database
+
+import (
+        "encoding/json"
+        "strconv"
+)
+
+type rm map[string]map[string]string // rm stands for Response Message
+
+// ErrorType оборачивает данные (http статус код + сообщение) об ошибке
+// в json и возвращает его вызывающему хэндлеру
+func ErrorType(status int, message string) (response []byte) <span class="cov8" title="1">{
+        err := rm{
+                "error": {
+                        "status_code":    strconv.Itoa(status),
+                        "status_message": message,
+                },
+        }
+
+        response, _ = json.Marshal(err)
+        return response
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package database
+
+import (
+        "encoding/json"
+        "log"
+        "math"
+        "microservice_job_avito/internal/types"
+        "net/http"
+        "strconv"
+        "strings"
+)
+
+// PathHandler ...
+func PathHandler() <span class="cov0" title="0">{
+        http.HandleFunc("/balance", GetBalance)
+        http.HandleFunc("/remittance", Remittance)
+        http.HandleFunc("/increase", IncreaseAndDecrease)
+        http.HandleFunc("/decrease", IncreaseAndDecrease)
+
+        http.HandleFunc("/", NotFound)
+
+        log.Fatal(http.ListenAndServe(":8000", nil))
+}</span>
+
+// GetBalance - Метод получения текущего баланса пользователя.
+// Аргументы:
+//                id: уникальный идентификатор пользователя;
+// Возвращаемые значения:
+//                balance: текущий баланс пользователя;
+func GetBalance(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        var (
+                contentType string = r.Header.Get("Content-Type")
+
+                userIDFromRequest   string
+                currencyFromRequest string
+                currencyFlag        bool = false
+                responseJSON        []byte
+
+                balance *types.Balance
+                status  int
+        )
+
+        if r.Method != "POST" &amp;&amp; r.Method != "GET" </span><span class="cov8" title="1">{
+                responseJSON = ErrorType(405, "Method not allowed: use GET or POST")
+
+                w.WriteHeader(http.StatusMethodNotAllowed)
+                w.Write(responseJSON)
+
+                return
+        }</span>
+
+        <span class="cov8" title="1">if contentType != "" </span><span class="cov8" title="1">{
+                // Метод POST, Content-Type, но URL-параметры вместо тела
+                if _, exist := r.URL.Query()["id"]; exist </span><span class="cov8" title="1">{
+                        responseJSON = ErrorType(400, "Need body parameters, not URL")
+
+                        w.WriteHeader(http.StatusBadRequest)
+                        w.Write(responseJSON)
+
+                        return
+                }</span>
+
+                // Метод GET и пустое тело
+                <span class="cov8" title="1">if r.Method == "GET" &amp;&amp; userIDFromRequest == "" </span><span class="cov8" title="1">{
+                        responseJSON = ErrorType(405, "Method not allowed: use POST-method and body parameters with Content-Type")
+
+                        w.WriteHeader(http.StatusMethodNotAllowed)
+                        w.Write(responseJSON)
+
+                        return
+                }</span>
+        }
+
+        // Парсинг параметров
+        <span class="cov8" title="1">if contentType == "application/x-www-form-urlencoded" </span><span class="cov8" title="1">{
+                r.ParseForm()
+
+                userIDFromRequest = r.Form.Get("id")
+                currencyFromRequest = r.Form.Get("currency")
+
+                if currencyFromRequest != "" </span><span class="cov8" title="1">{
+                        currencyFlag = true
+                }</span>
+
+        } else<span class="cov8" title="1"> if contentType == "application/json" </span><span class="cov8" title="1">{
+                decoder := json.NewDecoder(r.Body)
+
+                var reqData types.UserIDBalance
+
+                if err := decoder.Decode(&amp;reqData); err != nil </span><span class="cov8" title="1">{
+                        responseJSON = ErrorType(400, "Invalid JSON format")
+
+                        w.WriteHeader(http.StatusBadRequest)
+                        w.Write(responseJSON)
+
+                        return
+                }</span>
+
+                <span class="cov8" title="1">userIDFromRequest = reqData.ID
+                currencyFromRequest = reqData.Currency
+
+                if currencyFromRequest != "" </span><span class="cov8" title="1">{
+                        currencyFlag = true
+                }</span>
+
+        } else<span class="cov8" title="1"> if contentType == "" </span><span class="cov8" title="1">{
+                userIDFromRequest = r.URL.Query().Get("id")
+                currencyFromRequest = r.URL.Query().Get("currency")
+
+                if currencyFromRequest != "" </span><span class="cov8" title="1">{
+                        currencyFlag = true
+                }</span>
+
+        } else<span class="cov8" title="1"> {
+                responseJSON = ErrorType(400, "Unknown Content-Type")
+
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write(responseJSON)
+
+                return
+        }</span>
+
+        // Если параметры введены неверно
+        <span class="cov8" title="1">if userIDFromRequest == "" </span><span class="cov8" title="1">{
+                responseJSON = ErrorType(400, "Wrong parameter(s)")
+
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write(responseJSON)
+
+                return
+        }</span>
+
+        <span class="cov8" title="1">balance, status, err := getBalance(userIDFromRequest, currencyFlag, currencyFromRequest)
+
+        if err != nil </span><span class="cov8" title="1">{
+                responseJSON = ErrorType(status, err.Error())
+
+                w.WriteHeader(status)
+                w.Write(responseJSON)
+
+                return
+        }</span>
+
+        <span class="cov8" title="1">responseJSON, _ = json.Marshal(balance)
+
+        w.WriteHeader(200)
+        w.Write(responseJSON)
+
+        return</span>
+}
+
+// IncreaseAndDecrease - Метод начисления и списания средств.
+// Аргументы:
+//                id: уникальный идентификатор пользователя;
+//                money: количество средст для зачисления/списания;
+// Возвращаемые значения:
+//                balance: текущий баланс пользователя;
+func IncreaseAndDecrease(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        var (
+                contentType string = r.Header.Get("Content-Type")
+
+                userIDFromRequest string
+                moneyFromRequest  string
+                responseJSON      []byte
+
+                balance *types.Balance
+                status  int
+        )
+
+        if r.Method != "POST" &amp;&amp; r.Method != "GET" </span><span class="cov8" title="1">{
+                responseJSON = ErrorType(405, "Method not allowed: use GET or POST")
+
+                w.WriteHeader(http.StatusMethodNotAllowed)
+                w.Write(responseJSON)
+
+                return
+        }</span>
+
+        <span class="cov8" title="1">params := [2]string{"id", "money"}
+
+        if contentType != "" </span><span class="cov8" title="1">{
+                // Метод POST, Content-Type, но URL-параметры вместо тела
+                for _, param := range params </span><span class="cov8" title="1">{
+                        if _, exist := r.URL.Query()[param]; exist </span><span class="cov8" title="1">{
+                                responseJSON = ErrorType(400, "Need body parameters, not URL")
+
+                                w.WriteHeader(http.StatusBadRequest)
+                                w.Write(responseJSON)
+
+                                return
+                        }</span>
+                }
+
+                // Метод GET и пустое тело
+                <span class="cov8" title="1">if r.Method == "GET" &amp;&amp; (userIDFromRequest == "" || moneyFromRequest == "") </span><span class="cov8" title="1">{
+                        responseJSON = ErrorType(405, "Method not allowed: use POST-method and body parameters with Content-Type")
+
+                        w.WriteHeader(http.StatusMethodNotAllowed)
+                        w.Write(responseJSON)
+
+                        return
+                }</span>
+        }
+
+        // Парсинг параметров
+        <span class="cov8" title="1">if contentType == "application/x-www-form-urlencoded" </span><span class="cov8" title="1">{
+                r.ParseForm()
+
+                userIDFromRequest = r.Form.Get("id")
+                moneyFromRequest = r.Form.Get("money")
+
+        }</span> else<span class="cov8" title="1"> if contentType == "application/json" </span><span class="cov8" title="1">{
+                decoder := json.NewDecoder(r.Body)
+
+                var reqData types.IncreaseDecrease
+
+                if err := decoder.Decode(&amp;reqData); err != nil </span><span class="cov8" title="1">{
+                        responseJSON = ErrorType(400, "Invalid JSON format")
+
+                        w.WriteHeader(http.StatusBadRequest)
+                        w.Write(responseJSON)
+
+                        return
+                }</span>
+
+                <span class="cov8" title="1">userIDFromRequest = reqData.ID
+                moneyFromRequest = reqData.Money</span>
+
+        } else<span class="cov8" title="1"> if contentType == "" </span><span class="cov8" title="1">{
+                userIDFromRequest = r.URL.Query().Get("id")
+                moneyFromRequest = r.URL.Query().Get("money")
+        }</span> else<span class="cov0" title="0"> {
+                responseJSON = ErrorType(400, "Unknown Content-Type")
+
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write(responseJSON)
+
+                return
+        }</span>
+
+        // Если параметры введены неверно
+        <span class="cov8" title="1">if userIDFromRequest == "" || moneyFromRequest == "" </span><span class="cov8" title="1">{
+                responseJSON = ErrorType(400, "Wrong parameter(s)")
+
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write(responseJSON)
+
+                return
+        }</span>
+
+        // Если в указанной сумме используется запятая, а не точка
+        <span class="cov8" title="1">moneyFromRequest = strings.Replace(moneyFromRequest, ",", ".", -1)
+        money, err := strconv.ParseFloat(moneyFromRequest, 64)
+
+        if err != nil || money &lt; 0 </span><span class="cov8" title="1">{
+                responseJSON = ErrorType(400, "Wrong parameter(s)")
+
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write(responseJSON)
+
+                return
+        }</span>
+
+        <span class="cov8" title="1">if r.URL.Path == "/increase" </span><span class="cov8" title="1">{
+                balance, status, err = increase(userIDFromRequest, math.Round(money*100)/100)
+
+        }</span> else<span class="cov8" title="1"> if r.URL.Path == "/decrease" </span><span class="cov8" title="1">{
+                balance, status, err = decrease(userIDFromRequest, math.Round(money*100)/100)
+        }</span>
+
+        <span class="cov8" title="1">responseJSON, _ = json.Marshal(balance)
+
+        w.WriteHeader(status)
+        w.Write(responseJSON)
+
+        return</span>
+}
+
+// Remittance - Метод перевода средств от пользователя к пользователю.
+// Аргументы:
+//                from: уникальный идентификатор пользователя, с баланса которого надо списать средства;
+//                to: уникальный идентификатор пользователя, на баланс которого надо перечислить средства;
+//                money: количество средст для зачисления;
+// Возвращаемые значения:
+//                balance: текущие балансы обоих пользователей;
+func Remittance(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        var (
+                contentType string = r.Header.Get("Content-Type")
+
+                userFromIDRequest string
+                userToIDRequest   string
+                moneyFromRequest  string
+                responseJSON      []byte
+
+                balance *types.Remittance
+                status  int
+        )
+
+        if r.Method != "POST" &amp;&amp; r.Method != "GET" </span><span class="cov8" title="1">{
+                responseJSON = ErrorType(405, "Method not allowed: use GET or POST")
+
+                w.WriteHeader(http.StatusMethodNotAllowed)
+                w.Write(responseJSON)
+
+                return
+        }</span>
+
+        <span class="cov8" title="1">params := [3]string{"from", "to", "money"}
+
+        if contentType != "" </span><span class="cov8" title="1">{
+                // Метод POST, Content-Type, но URL-параметры вместо тела
+                for _, param := range params </span><span class="cov8" title="1">{
+                        if _, exist := r.URL.Query()[param]; exist </span><span class="cov8" title="1">{
+                                responseJSON = ErrorType(400, "Need body parameters, not URL")
+
+                                w.WriteHeader(http.StatusBadRequest)
+                                w.Write(responseJSON)
+
+                                return
+                        }</span>
+                }
+
+                // Метод GET и пустое тело
+                <span class="cov8" title="1">if r.Method == "GET" &amp;&amp; (userFromIDRequest == "" || userToIDRequest == "" || moneyFromRequest == "") </span><span class="cov8" title="1">{
+                        responseJSON = ErrorType(405, "Method not allowed: use POST-method and body parameters with Content-Type")
+
+                        w.WriteHeader(http.StatusMethodNotAllowed)
+                        w.Write(responseJSON)
+
+                        return
+                }</span>
+        }
+
+        // Парсинг параметров
+        <span class="cov8" title="1">if contentType == "application/x-www-form-urlencoded" </span><span class="cov8" title="1">{
+                r.ParseForm()
+
+                userFromIDRequest = r.Form.Get("from")
+                userToIDRequest = r.Form.Get("to")
+                moneyFromRequest = r.Form.Get("money")
+
+        }</span> else<span class="cov8" title="1"> if contentType == "application/json" </span><span class="cov8" title="1">{
+                decoder := json.NewDecoder(r.Body)
+
+                var reqData types.RemittanceRequest
+
+                if err := decoder.Decode(&amp;reqData); err != nil </span><span class="cov8" title="1">{
+                        responseJSON = ErrorType(400, "Invalid JSON format")
+
+                        w.WriteHeader(http.StatusBadRequest)
+                        w.Write(responseJSON)
+
+                        return
+                }</span>
+
+                <span class="cov8" title="1">userFromIDRequest = reqData.IDFrom
+                userToIDRequest = reqData.IDTo
+                moneyFromRequest = reqData.Money</span>
+
+        } else<span class="cov8" title="1"> if contentType == "" </span><span class="cov8" title="1">{
+                userFromIDRequest = r.URL.Query().Get("from")
+                userToIDRequest = r.URL.Query().Get("to")
+                moneyFromRequest = r.URL.Query().Get("money")
+        }</span> else<span class="cov0" title="0"> {
+                responseJSON = ErrorType(400, "Unknown Content-Type")
+
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write(responseJSON)
+
+                return
+        }</span>
+
+        // Если параметры введены неверно
+        <span class="cov8" title="1">if userFromIDRequest == "" || userToIDRequest == "" || moneyFromRequest == "" </span><span class="cov8" title="1">{
+                responseJSON = ErrorType(400, "Wrong parameter(s)")
+
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write(responseJSON)
+
+                return
+        }</span>
+
+        // Если в указанной сумме используется запятая, а не точка
+        <span class="cov8" title="1">moneyFromRequest = strings.Replace(moneyFromRequest, ",", ".", -1)
+        money, err := strconv.ParseFloat(moneyFromRequest, 64)
+
+        if err != nil || money &lt; 0 </span><span class="cov8" title="1">{
+                responseJSON = ErrorType(400, "Wrong parameter(s)")
+
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write(responseJSON)
+
+                return
+        }</span>
+
+        <span class="cov8" title="1">balance, status, err = remittance(userFromIDRequest, userToIDRequest, math.Round(money*100)/100)
+
+        responseJSON, _ = json.Marshal(balance)
+
+        w.WriteHeader(status)
+        w.Write(responseJSON)
+
+        return</span>
+}
+
+// NotFound - Метод, который вызывается, если указанный путь не найден.
+func NotFound(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        responseJSON := ErrorType(404, "Not found")
+
+        w.WriteHeader(http.StatusNotFound)
+        w.Write(responseJSON)
+
+        return
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

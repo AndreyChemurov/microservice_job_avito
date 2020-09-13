@@ -17,6 +17,6 @@ func ErrorType(status int, message string) (response []byte) {
 		},
 	}
 
-	returnJSON, _ := json.Marshal(err)
-	return returnJSON
+	response, _ = json.Marshal(err)
+	return response
 }

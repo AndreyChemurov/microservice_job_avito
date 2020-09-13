@@ -22,13 +22,21 @@ const (
 
 var postgresInfo = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 
-func getBalance(userID string, flag bool, base string) (*types.Balance, error) {
+// Аргументы:
+//		userID - уникальный идентификатор пользователя
+//		flag - флаг для парсинга в другой валюте
+//		base - обозначение другой валюты
+// Возвращаемые значения:
+//		response - структура текущего баланса
+//		[status] - http статус код
+//		[error] - ошибка
+func getBalance(userID string, flag bool, base string) (*types.Balance, int, error) {
 	db, err := sql.Open("postgres", postgresInfo)
 
 	if err != nil {
-		response := types.Balance{Status: 500}
+		response := types.Balance{}
 
-		return &response, errors.New("Service cannot connect to database")
+		return &response, 500, errors.New("Service cannot connect to database")
 	}
 
 	defer db.Close()
@@ -39,23 +47,23 @@ func getBalance(userID string, flag bool, base string) (*types.Balance, error) {
 	userRow, err := dot.QueryRow(db, "check-user-exists", userID)
 
 	if err != nil {
-		response := types.Balance{Status: 500}
+		response := types.Balance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
 	var userIDCheck string
 	err = userRow.Scan(&userIDCheck)
 
 	if err == sql.ErrNoRows {
-		response := types.Balance{Status: 400}
+		response := types.Balance{}
 
-		return &response, errors.New("User does not exist")
+		return &response, 500, errors.New("User does not exist")
 
 	} else if err != nil {
-		response := types.Balance{Status: 500}
+		response := types.Balance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
 	// Если пользователь существует
@@ -65,37 +73,44 @@ func getBalance(userID string, flag bool, base string) (*types.Balance, error) {
 	err = response.Scan(&balance)
 
 	if err != nil {
-		response := types.Balance{Status: 500}
+		response := types.Balance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
 	if flag == false {
-		returnBalance := types.Balance{Balance: balance, Status: 200}
+		returnBalance := types.Balance{Balance: balance}
 
-		return &returnBalance, nil
+		return &returnBalance, 200, nil
 	}
 
 	balance, err = currency.Currency(balance, base)
 
 	if err != nil {
-		response := types.Balance{Status: 500}
+		response := types.Balance{}
 
-		return &response, err
+		return &response, 500, err
 	}
 
-	returnBalance := types.Balance{Balance: balance, Status: 200}
+	returnBalance := types.Balance{Balance: balance}
 
-	return &returnBalance, nil
+	return &returnBalance, 200, nil
 }
 
-func increase(userID string, money float64) (*types.Balance, error) {
+// Аргументы:
+//		userID - уникальный идентификатор пользователя
+//		money - количество средств для зачисления
+// Возвращаемые значения:
+//		response - структура текущего баланса после зачисления
+//		[status] - http статус код
+//		[error] - ошибка
+func increase(userID string, money float64) (*types.Balance, int, error) {
 	db, err := sql.Open("postgres", postgresInfo)
 
 	if err != nil {
-		response := types.Balance{Status: 500}
+		response := types.Balance{}
 
-		return &response, errors.New("Service cannot connect to database")
+		return &response, 500, errors.New("Service cannot connect to database")
 	}
 
 	defer db.Close()
@@ -106,9 +121,9 @@ func increase(userID string, money float64) (*types.Balance, error) {
 	userRow, err := dot.QueryRow(db, "check-user-exists", userID)
 
 	if err != nil {
-		response := types.Balance{Status: 500}
+		response := types.Balance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
 	var userIDCheck string
@@ -117,15 +132,15 @@ func increase(userID string, money float64) (*types.Balance, error) {
 	if err == sql.ErrNoRows {
 
 		if _, err = dot.Exec(db, "create-user", userID); err != nil {
-			response := types.Balance{Status: 500}
+			response := types.Balance{}
 
-			return &response, errors.New("Internal server error")
+			return &response, 500, errors.New("Internal server error")
 		}
 
 		if _, err = dot.Exec(db, "create-balance", userID); err != nil {
-			response := types.Balance{Status: 500}
+			response := types.Balance{}
 
-			return &response, errors.New("Internal server error")
+			return &response, 500, errors.New("Internal server error")
 		}
 
 	} else if err != nil {
@@ -136,9 +151,9 @@ func increase(userID string, money float64) (*types.Balance, error) {
 	_, err = dot.Exec(db, "remittance-to", money, userID)
 
 	if err != nil {
-		response := types.Balance{Status: 500}
+		response := types.Balance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
 	response, err := dot.QueryRow(db, "get-user-balance", userID)
@@ -147,22 +162,29 @@ func increase(userID string, money float64) (*types.Balance, error) {
 	err = response.Scan(&balance)
 
 	if err != nil {
-		response := types.Balance{Status: 500}
+		response := types.Balance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
-	returnBalance := types.Balance{Balance: balance, Status: 200}
-	return &returnBalance, nil
+	returnBalance := types.Balance{Balance: balance}
+	return &returnBalance, 200, nil
 }
 
-func decrease(userID string, money float64) (*types.Balance, error) {
+// Аргументы:
+//		userID - уникальный идентификатор пользователя
+//		money - количество средств для списания
+// Возвращаемые значения:
+//		response - структура текущего баланса после списания
+//		[status] - http статус код
+//		[error] - ошибка
+func decrease(userID string, money float64) (*types.Balance, int, error) {
 	db, err := sql.Open("postgres", postgresInfo)
 
 	if err != nil {
-		response := types.Balance{Status: 500}
+		response := types.Balance{}
 
-		return &response, errors.New("Service cannot connect to database")
+		return &response, 500, errors.New("Service cannot connect to database")
 	}
 
 	defer db.Close()
@@ -173,23 +195,23 @@ func decrease(userID string, money float64) (*types.Balance, error) {
 	userRow, err := dot.QueryRow(db, "check-user-exists", userID)
 
 	if err != nil {
-		response := types.Balance{Status: 500}
+		response := types.Balance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
 	var userIDCheck string
 	err = userRow.Scan(&userIDCheck)
 
 	if err == sql.ErrNoRows {
-		response := types.Balance{Status: 500}
+		response := types.Balance{}
 
-		return &response, errors.New("User does not exist")
+		return &response, 500, errors.New("User does not exist")
 
 	} else if err != nil {
-		response := types.Balance{Status: 500}
+		response := types.Balance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
 	// Уменьшить баланс
@@ -199,49 +221,57 @@ func decrease(userID string, money float64) (*types.Balance, error) {
 	err = response.Scan(&balance)
 
 	if err != nil {
-		response := types.Balance{Status: 500}
+		response := types.Balance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 
 	} else if balance < money { // Пользовтелеь не имеет достаточное количество средств для списания
-		response := types.Balance{Status: 500}
+		response := types.Balance{}
 
-		return &response, errors.New("Operation not available: Debit exceeds the balance")
+		return &response, 500, errors.New("Operation not available: Debit exceeds the balance")
 	}
 
 	if _, err = dot.Exec(db, "remittance-from", money, userID); err != nil {
 
 		if err, _ := err.(*pq.Error); err.Code.Name() == "check_violation" {
-			response := types.Balance{Status: 500}
+			response := types.Balance{}
 
-			return &response, errors.New("Operation not available: Debit exceeds the balance")
+			return &response, 500, errors.New("Operation not available: Debit exceeds the balance")
 		}
 
-		response := types.Balance{Status: 500}
+		response := types.Balance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
 	response, err = dot.QueryRow(db, "get-user-balance", userID)
 	err = response.Scan(&balance)
 
 	if err != nil {
-		response := types.Balance{Status: 500}
+		response := types.Balance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
-	returnBalance := types.Balance{Balance: balance, Status: 200}
-	return &returnBalance, nil
+	returnBalance := types.Balance{Balance: balance}
+	return &returnBalance, 200, nil
 }
 
-func remittance(userIDFrom string, userIDTo string, money float64) (*types.Remittance, error) {
+// Аргументы:
+//		userIDFrom - уникальный идентификатор пользователя, который переводит средства
+//		userIDTo - уникальный идентификатор пользователя, которому переводят средства
+//		money - количество средств для перевода
+// Возвращаемые значения:
+//		response - структура текущего баланса обоих пользователей
+//		[status] - http статус код
+//		[error] - ошибка
+func remittance(userIDFrom string, userIDTo string, money float64) (*types.Remittance, int, error) {
 	db, err := sql.Open("postgres", postgresInfo)
 
 	if err != nil {
-		response := types.Remittance{Status: 500}
+		response := types.Remittance{}
 
-		return &response, errors.New("Service cannot connect to database")
+		return &response, 500, errors.New("Service cannot connect to database")
 	}
 
 	defer db.Close()
@@ -252,57 +282,57 @@ func remittance(userIDFrom string, userIDTo string, money float64) (*types.Remit
 	userRow, err := dot.QueryRow(db, "check-user-exists", userIDFrom)
 
 	if err != nil {
-		response := types.Remittance{Status: 500}
+		response := types.Remittance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
 	var userIDCheck string
 	err = userRow.Scan(&userIDCheck)
 
 	if err == sql.ErrNoRows {
-		response := types.Remittance{Status: 500}
+		response := types.Remittance{}
 
-		return &response, errors.New("User does not exist")
+		return &response, 500, errors.New("User does not exist")
 
 	} else if err != nil {
-		response := types.Remittance{Status: 500}
+		response := types.Remittance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
 	// Проверить, существует ли пользователь, на баланс которому нужно перевести средства
 	userRow, err = dot.QueryRow(db, "check-user-exists", userIDTo)
 
 	if err != nil {
-		response := types.Remittance{Status: 500}
+		response := types.Remittance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
 	err = userRow.Scan(&userIDCheck)
 
 	if err == sql.ErrNoRows {
-		response := types.Remittance{Status: 500}
+		response := types.Remittance{}
 
-		return &response, errors.New("User does not exist")
+		return &response, 500, errors.New("User does not exist")
 
 	} else if err != nil {
-		response := types.Remittance{Status: 500}
+		response := types.Remittance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
 	if _, err = dot.Exec(db, "remittance-from", money, userIDFrom); err != nil {
-		response := types.Remittance{Status: 500}
+		response := types.Remittance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
 	if _, err = dot.Exec(db, "remittance-to", money, userIDTo); err != nil {
-		response := types.Remittance{Status: 500}
+		response := types.Remittance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
 	var balanceFrom, balanceTo float64
@@ -311,21 +341,21 @@ func remittance(userIDFrom string, userIDTo string, money float64) (*types.Remit
 	err = bFrom.Scan(&balanceFrom)
 
 	if err != nil {
-		response := types.Remittance{Status: 500}
+		response := types.Remittance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
 	bTo, err := dot.QueryRow(db, "get-user-balance", userIDTo)
 	err = bTo.Scan(&balanceTo)
 
 	if err != nil {
-		response := types.Remittance{Status: 500}
+		response := types.Remittance{}
 
-		return &response, errors.New("Internal server error")
+		return &response, 500, errors.New("Internal server error")
 	}
 
-	returnBalance := types.Remittance{BalanceFrom: balanceFrom, BalanceTo: balanceTo, Status: 200}
+	returnBalance := types.Remittance{BalanceFrom: balanceFrom, BalanceTo: balanceTo}
 
-	return &returnBalance, nil
+	return &returnBalance, 200, nil
 }

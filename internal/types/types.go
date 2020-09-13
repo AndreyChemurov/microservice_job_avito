@@ -5,15 +5,16 @@ package types
 // Balance - применяется в  GetBalance, IncreaseAndDecrease
 type Balance struct {
 	Balance float64
-	Status  int
 }
 
 // Remittance применяется в Remittance
 type Remittance struct {
 	BalanceFrom float64
 	BalanceTo   float64
-	Status      int
 }
+
+// Status - http статус
+type Status int
 
 /* Request Types */
 
